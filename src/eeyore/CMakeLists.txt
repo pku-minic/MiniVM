@@ -7,7 +7,7 @@ add_compile_definitions(APP_VERSION_PATCH=${PROJECT_VERSION_PATCH})
 
 # project include directories
 include_directories(.)
-# include_directories(${PROJECT_SOURCE_DIR}/3rdparty/xstl)
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty/xstl)
 
 # all of C++ source files
 file(GLOB_RECURSE SOURCES "*.cpp")
