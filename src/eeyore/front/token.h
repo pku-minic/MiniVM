@@ -12,4 +12,6 @@
 // expand second element to comma-separated list
 #define TOKEN_EXPAND_SECOND(i, j, ...)  j,
 
+enum class TokenOp { TOKEN_OPERATORS(TOKEN_EXPAND_FIRST) };
+
 #endif  // MINIVM_EEYORE_FRONT_TOKEN_H_

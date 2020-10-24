@@ -18,7 +18,7 @@
 #define debug(msg)  std::cerr << "Lex: " << msg << std::endl
 #endif
 
-int GetOpVal(std::string_view op);
+TokenOp GetOpVal(std::string_view op);
 
 %}
 
@@ -57,11 +57,11 @@ LogicOp     !=|==|>|<|>=|<=|\|\||&&
 %%
 
 // get 'op_val' of the specific operator
-int GetOpVal(std::string_view op) {
+TokenOp GetOpVal(std::string_view op) {
   const char *kOpStr[] = {TOKEN_OPERATORS(TOKEN_EXPAND_SECOND)};
   int op_val = 0;
   for (const auto &i : kOpStr) {
-    if (op == i) return op_val;
+    if (op == i) return static_cast<TokenOp>(op_val);
     ++op_val;
   }
   assert(false);
