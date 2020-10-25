@@ -20,9 +20,46 @@ else()
   add_compile_options(-Wall -Werror)
 endif()
 
+# some definitions
+add_compile_definitions(APP_NAME="MiniVM Eeyore/Tigger Virtual Machine")
+add_compile_definitions(APP_VERSION="${PROJECT_VERSION}")
+add_compile_definitions(APP_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
+add_compile_definitions(APP_VERSION_MINOR=${PROJECT_VERSION_MINOR})
+add_compile_definitions(APP_VERSION_PATCH=${PROJECT_VERSION_PATCH})
+
 # find Flex/Bison
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
-# all sub-directories
-add_subdirectory(src/eeyore)
+# generate lexer/parser of Eeyore
+flex_target(EeyoreLexer front/eeyore.l
+            ${CMAKE_CURRENT_BINARY_DIR}/eeyore.lexer.cpp
+            COMPILE_FLAGS -+ -P eeyore_)
+bison_target(EeyoreParser front/eeyore.y
+             ${CMAKE_CURRENT_BINARY_DIR}/eeyore.parser.cpp
+             COMPILE_FLAGS -p eeyore_)
+add_flex_bison_dependency(EeyoreLexer EeyoreParser)
+
+# generate lexer/parser of Tigger
+flex_target(TiggerLexer front/tigger.l
+            ${CMAKE_CURRENT_BINARY_DIR}/tigger.lexer.cpp
+            COMPILE_FLAGS -+ -P tigger_)
+bison_target(TiggerParser front/tigger.y
+             ${CMAKE_CURRENT_BINARY_DIR}/tigger.parser.cpp
+             COMPILE_FLAGS -p tigger_)
+add_flex_bison_dependency(TiggerLexer TiggerParser)
+
+# project include directories
+include_directories(src)
+include_directories(3rdparty/xstl)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+# all of C++ source files
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+set(SOURCES ${SOURCES} ${FLEX_EeyoreLexer_OUTPUTS}
+    ${BISON_EeyoreParser_OUTPUT_SOURCE})
+set(SOURCES ${SOURCES} ${FLEX_TiggerLexer_OUTPUTS}
+    ${BISON_TiggerParser_OUTPUT_SOURCE})
+
+# executable
+add_executable(minivm ${SOURCES})
