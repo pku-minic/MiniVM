@@ -1,5 +1,10 @@
 #include "vm/symbol.h"
 
+void SymbolPool::Reset() {
+  defs_.clear();
+  pool_.clear();
+}
+
 std::uint32_t SymbolPool::LogId(std::string_view symbol) {
   // try to find symbol
   auto it = defs_.find(symbol);

@@ -13,6 +13,9 @@ class SymbolPool {
  public:
   SymbolPool() {}
 
+  // reset internal state
+  void Reset();
+
   // query & get id of the specific symbol
   // create a new symbol if not found
   std::uint32_t LogId(std::string_view symbol);
