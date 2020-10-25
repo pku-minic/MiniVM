@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <cassert>
 
-#include "eeyore.tab.hpp"
+#include "eeyore.parser.hpp"
 #include "front/token.h"
 
 #ifdef NDEBUG
@@ -28,7 +28,7 @@ Label       l[0-9]+
 Function    f_[_a-zA-Z][_a-zA-Z0-9]*
 Num         -?[1-9][0-9]*|0
 Symbol      [Ttp][0-9]+
-Op          [\+\-\*\/\%\!]
+Op          [\+\-\*\/\%\!\&]
 LogicOp     !=|==|>|<|>=|<=|\|\||&&
 
 %%
