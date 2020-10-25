@@ -8,9 +8,8 @@ The current version of MiniVM is implemented in C++ language, but in fact, there
 
 MiniVM is a stack-based virtual machine, which means most of the operands required by instructions come from the internal stack of the virtual machine. In details, MiniVM has the following built-in structures:
 
-* **Operand stack**: storing operands.
+* **Operand stack**: storing operands or parameters.
 * **Memory pool stack**: holding all dynamically allocated memory and return addresses for each active functions.
-* **Parameter stack**: storing parameters, designed to execute Eeyore's `param` statement.
 * **Static registers**: storing some static data, designed to execute Tigger IR.
 * **Symbol pool**: holding all symbols, which can be variable names or external function names.
 * **Instruction container**: holding all instructions and debugging information.
@@ -74,7 +73,7 @@ Details as follows:
 | Call    | `pc`      | N/A               | call function at `pc`                       |
 | CallExt | `sym`     | N/A               | call external function `sym`                |
 | Ret     | N/A       | N/A               | return from a function call                 |
-| Param   | N/A       | param             | push param to parameter stack               |
+| Param   | N/A       | param             | push param to stack                         |
 | LNot    | N/A       | opr               | perform logical negation                    |
 | LAnd    | N/A       | lhs, rhs          | perform logical AND operation               |
 | LOr     | N/A       | lhs, rhs          | perform logical OR operation                |
@@ -96,7 +95,7 @@ Details as follows:
 When executing a `Call`/`CallExt` instruction, MiniVM will:
 
 1. Create a new memory pool, and push it to the memory pool stack.
-2. Check the parameter stack, if there are any values in it, pop them and add them to the memory pool, then assign symbol to it, such as `p0`, `p1`, etc.
+2. Check the operand stack, if there are any values in it, pop them and add them to the memory pool, then assign symbol to it, such as `p0`, `p1`, etc.
 3. Jump to target pc address, or call the specific external function.
 
 On the contrast, when executing a `Ret` instruction, MiniVM will:
@@ -125,6 +124,7 @@ To be compatible with Eeyore and Tigger, MiniVM supports two methods for passing
 
 MiniVM ***must ensure***:
 
+* Before the `Call`/`CallExt` instructions are executed, there is no value in the operand stack, except for function parameters.
 * When executing Eeyore generated instructions, there are no data blocks with symbol `$frame` in the current memory pool.
 * When executing Tigger generated instructions, there must be a data blocks with symbol `$frame` in the current memory pool, and, all `$frame`s should be placed consecutively in the same memory area.
 
