@@ -74,6 +74,7 @@ Details as follows:
 | CallExt | `sym`     | N/A               | call external function `sym`                |
 | Ret     | N/A       | N/A               | return from a function call                 |
 | Param   | N/A       | param             | push param to stack                         |
+| Break   | N/A       | N/A               | breakpoint, inserted by debugger            |
 | LNot    | N/A       | opr               | perform logical negation                    |
 | LAnd    | N/A       | lhs, rhs          | perform logical AND operation               |
 | LOr     | N/A       | lhs, rhs          | perform logical OR operation                |
