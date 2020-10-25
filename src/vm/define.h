@@ -1,6 +1,7 @@
 #ifndef MINIVM_VM_DEFINE_H_
 #define MINIVM_VM_DEFINE_H_
 
+#include <cstddef>
 #include <cstdint>
 
 // all supported VM instructions
@@ -33,21 +34,31 @@
 // define a label of VM threading
 #define VM_LABEL(l)               VML_##l:
 
+// length of VM instruction (in bits)
+constexpr std::size_t kVMInstLen = 32;
+// length of opcode field (in bits)
+constexpr std::size_t kVMInstOpLen = 8;
+// length of operand field (in bits)
+constexpr std::size_t kVMInstImmLen = kVMInstLen - kVMInstOpLen;
+
 // opcode of VM instructions
-// NOTE: length up to 8 bit, although it's declared as 'std::uint32_t'
+// NOTE:  length up to 'kVMInstOpLen' bit,
+//        although it's declared as 'std::uint32_t'
 enum class InstOp : std::uint32_t { VM_INSTS(VM_EXPAND_LIST) };
 
-// VM instruction (packed, 64-bit long)
+// VM instruction (packed, 'kVMInstLen' bits long)
 struct VMInst {
   // opcode
-  InstOp op : 8;
+  InstOp op : kVMInstOpLen;
   // symbol reference/immediate/absolute target address
-  std::uint32_t opr : 24;
+  std::uint32_t opr : kVMInstImmLen;
 };
 
 // name of entry point
 constexpr const char *kVMEntry = "$entry";
 // name of frame area
 constexpr const char *kVMFrame = "$frame";
+// name of main function
+constexpr const char *kVMFrame = "f_main";
 
 #endif  // MINIVM_VM_DEFINE_H_
