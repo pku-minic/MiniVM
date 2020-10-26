@@ -1,5 +1,14 @@
 #include "vm/symbol.h"
 
+#include <utility>
+
+void SymbolPool::PushNewSymbol(std::string_view symbol) {
+  auto sym_ptr = std::make_unique<char[]>(symbol.size() + 1);
+  symbol.copy(sym_ptr.get(), symbol.size());
+  sym_ptr[symbol.size()] = '\0';
+  pool_.push_back(std::move(sym_ptr));
+}
+
 void SymbolPool::Reset() {
   defs_.clear();
   pool_.clear();
@@ -14,9 +23,9 @@ std::uint32_t SymbolPool::LogId(std::string_view symbol) {
   else {
     // store to pool
     std::uint32_t id = pool_.size();
-    pool_.emplace_back(symbol);
+    PushNewSymbol(symbol);
     // update symbol definition
-    return defs_[pool_.back()] = id;
+    return defs_[pool_.back().get()] = id;
   }
 }
 
@@ -29,6 +38,6 @@ std::optional<std::uint32_t> SymbolPool::FindId(
 
 std::optional<std::string_view> SymbolPool::FindSymbol(
     std::uint32_t id) const {
-  if (id < pool_.size()) return pool_[id];
+  if (id < pool_.size()) return pool_[id].get();
   return {};
 }

@@ -2,8 +2,8 @@
 #define MINIVM_VM_SYMBOL_H_
 
 #include <string_view>
-#include <string>
 #include <optional>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 #include <cstdint>
@@ -25,8 +25,13 @@ class SymbolPool {
   std::optional<std::string_view> FindSymbol(std::uint32_t id) const;
 
  private:
+  using SymbolPtr = std::unique_ptr<char[]>;
+
+  // push a new symbol to pool
+  void PushNewSymbol(std::string_view symbol);
+
   std::unordered_map<std::string_view, std::uint32_t> defs_;
-  std::vector<std::string> pool_;
+  std::vector<SymbolPtr> pool_;
 };
 
 #endif  // MINIVM_VM_SYMBOL_H_
