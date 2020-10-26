@@ -28,23 +28,24 @@ The structure of MiniVM instruction is defined as follows:
 ```
 0   7 8       31
 +----+---------+
-| op |   imm   |
+| op |   opr   |
 +----+---------+
 ```
 
-As we can see, it consists of two field `op` and `imm`, the former is the opcode of instruction, and the latter is the operand, which can be:
+As we can see, it consists of two field `op` and `opr`, the former is the opcode of instruction, and the latter is the operand, which can be:
 
 * `sym`: symbol reference, which represents a symbol in the symbol pool.
-* `imm`: 24-bit immediate.
+* `imm`: 24-bit sign-extended immediate.
 * `pc`: absolute target address, used in control transfer instructions.
 * `reg`: id of static register.
 
 MiniVM supports the following instructions:
 
 * **Memory allocation**: Var, Arr.
-* **Load and store**: Ld, LdVar, LdReg, LdAddr, St, StVar, StReg, Imm, ImmHi.
+* **Load and store**: Ld, LdVar, LdReg, LdAddr, St, StVar, StVarP, StReg, StRegP, Imm, ImmHi.
 * **Control transfer**: Bnz, Jmp.
 * **Function call**: Call, CallExt, Ret, Param.
+* **Debugging**: Break.
 * **Logical operations**: LNot, LAnd, LOr.
 * **Comparisons**: Eq, Ne, Gt, Lt, Ge, Le.
 * **Arithmetic operations**: Neg, Add, Sub, Mul, Div, Mod.
@@ -58,16 +59,18 @@ Details as follows:
 | Opcode  | Operand   | Stack Operand     | Description                                 |
 | ---     | ---       | ---               | ---                                         |
 | Var     | `sym`     | N/A               | allocate memory for variable `sym`          |
-| Arr     | `sym`     | size (in byte)    | allocate memory for array `sym`             |
+| Arr     | `sym`     | size (in bytes)   | allocate memory for array `sym`             |
 | Ld      | N/A       | addr              | load 32-bit data from addr to stack         |
 | LdVar   | `sym`     | N/A               | load 32-bit data from `sym`'s addr to stack |
 | LdReg   | `reg`     | N/A               | load 32-bit data from `reg` to stack        |
-| LdAddr  | `sym`     | offset (in byte)  | load address of `sym`+offset to stack       |
-| St      | N/A       | addr              | store top of stack to addr                  |
-| StVar   | `sym`     | N/A               | store top of stack to `sym`'s addr          |
-| StReg   | `reg`     | N/A               | store top of stack to `reg`                 |
+| LdAddr  | `sym`     | offset (in bytes) | load address of `sym`+offset to stack       |
+| St      | N/A       | val, addr         | pop & store val to addr                     |
+| StVar   | `sym`     | val               | pop & store val to `sym`'s addr             |
+| StVarP  | `sym`     | val (preserved)   | preserve & store val to `sym`'s addr        |
+| StReg   | `reg`     | val               | pop & store val to `reg`                    |
+| StRegP  | `reg`     | val (preserved)   | preserve & store val to `reg`               |
 | Imm     | `imm`     | N/A               | load 24-bit `imm` to stack                  |
-| ImmHi   | `imm`     | N/A               | load `imm`&8 to upper 8-bit of top of stack |
+| ImmHi   | `imm`     | val (preserved)   | load `imm`&8 to upper 8-bit of val          |
 | Bnz     | `pc`      | cond              | jump to `pc` if cond is not zero            |
 | Jmp     | `pc`      | N/A               | jump to `pc`                                |
 | Call    | `pc`      | N/A               | call function at `pc`                       |
@@ -136,5 +139,9 @@ Considering the impact on performance, we strongly recommend that developers sho
 > Still WIP.
 
 ## Debugger of MiniVM
+
+> Still WIP.
+
+## Bytecode File Format
 
 > Still WIP.
