@@ -6,6 +6,7 @@
 #include "vm/instcont.h"
 
 // Eeyore parser
-void ParseEeyore(std::string_view file, VMInstContainer &cont);
+// returns false if parsing failed
+bool ParseEeyore(std::string_view file, VMInstContainer &cont);
 
 #endif  // MINIVM_FRONT_WRAPPER_H_
