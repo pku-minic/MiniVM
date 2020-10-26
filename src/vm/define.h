@@ -10,8 +10,8 @@
   /* memory allocation */                                               \
   e(Var) e(Arr)                                                         \
   /* load & store */                                                    \
-  e(Ld) e(LdVar) e(LdReg) e(LdAddr) e(St) e(StVar) e(StReg)             \
-  e(Imm) e(ImmHi)                                                       \
+  e(Ld) e(LdVar) e(LdReg) e(LdAddr)                                     \
+  e(St) e(StVar) e(StVarP) e(StReg) e(StRegP) e(Imm) e(ImmHi)           \
   /* control transfer (with absolute target address) */                 \
   e(Bnz) e(Jmp)                                                         \
   /* function call                                                      \
@@ -59,6 +59,6 @@ constexpr const char *kVMEntry = "$entry";
 // name of frame area
 constexpr const char *kVMFrame = "$frame";
 // name of main function
-constexpr const char *kVMFrame = "f_main";
+constexpr const char *kVMMain = "f_main";
 
 #endif  // MINIVM_VM_DEFINE_H_
