@@ -1,6 +1,7 @@
 %option yylineno
 %option noyywrap
-%option never-interactive
+%option nounput
+%option noinput
 
 %{
 
@@ -9,15 +10,12 @@
 #include <cstdlib>
 #include <cassert>
 
-#include "eeyore.parser.hpp"
 #include "front/token.h"
+#include "front/strpool.h"
 
-#ifdef NDEBUG
-#define debug(msg)  (static_cast<void>(0))
-#else
-#define debug(msg)  std::cerr << "Lex: " << msg << std::endl
-#endif
+#include "eeyore.parser.hpp"
 
+// get 'op_val' of the specific operator
 TokenOp GetOpVal(std::string_view op);
 
 %}
@@ -28,35 +26,36 @@ Label       l[0-9]+
 Function    f_[_a-zA-Z][_a-zA-Z0-9]*
 Num         -?[1-9][0-9]*|0
 Symbol      [Ttp][0-9]+
-Op          [\+\-\*\/\%\!\&]
+Op          [\+\-\*\/\%\!]
 LogicOp     !=|==|>|<|>=|<=|\|\||&&
+AddrOfOp    &
 
 %%
 
 {WhiteSp}   { /* ignore white spaces */ }
 {Comment}   { /* ignore line comments */ }
 
-"\n"        { debug("EOL"); return EOL; }
+"\n"        { return EOL; }
 
-"var"       { debug("Var"); return VAR; }
-"if"        { debug("If"); return IF; }
-"goto"      { debug("Goto"); return GOTO; }
-"param"     { debug("Param"); return PARAM; }
-"call"      { debug("Call"); return CALL; }
-"return"    { debug("Return"); return RETURN; }
-"end"       { debug("End"); return END; }
+"var"       { return VAR; }
+"if"        { return IF; }
+"goto"      { return GOTO; }
+"param"     { return PARAM; }
+"call"      { return CALL; }
+"return"    { return RETURN; }
+"end"       { return END; }
 
-{Label}     { debug("Label"); yylval.str_val = std::string(yytext); return LABEL; }
-{Function}  { debug("Function"); yylval.str_val = std::string(yytext); return FUNCTION; }
-{Symbol}    { debug("Symbol"); yylval.str_val = std::string(yytext); return SYMBOL; }
-{Num}       { debug("Num"); yylval.int_val = std::atoi(yytext); return NUM; }
-[\[\]:=]    { debug("Other"); return yytext[0]; }
-{Op}        { debug("Op"); yylval.op_val = GetOpVal(yytext); return OP; }
-{LogicOp}   { debug("LogicOp"); yylval.op_val = GetOpVal(yytext); return LOGICOP; }
+{Label}     { eeyore_lval.str_val = NewStr(yytext); return LABEL; }
+{Function}  { eeyore_lval.str_val = NewStr(yytext); return FUNCTION; }
+{Symbol}    { eeyore_lval.str_val = NewStr(yytext); return SYMBOL; }
+{Num}       { eeyore_lval.int_val = std::atoi(yytext); return NUM; }
+[\[\]:=]    { return yytext[0]; }
+{Op}        { eeyore_lval.op_val = GetOpVal(yytext); return OP; }
+{LogicOp}   { eeyore_lval.op_val = GetOpVal(yytext); return LOGICOP; }
+{AddrOfOp}  { return ADDROFOP; }
 
 %%
 
-// get 'op_val' of the specific operator
 TokenOp GetOpVal(std::string_view op) {
   const char *kOpStr[] = {TOKEN_OPERATORS(TOKEN_EXPAND_SECOND)};
   int op_val = 0;
@@ -65,5 +64,5 @@ TokenOp GetOpVal(std::string_view op) {
     ++op_val;
   }
   assert(false);
-  return -1;
+  return TokenOp::Add;
 }
