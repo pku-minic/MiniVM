@@ -16,7 +16,7 @@ std::uint32_t SymbolPool::LogId(std::string_view symbol) {
     std::uint32_t id = pool_.size();
     pool_.emplace_back(symbol);
     // update symbol definition
-    defs_[pool_.back()] = id;
+    return defs_[pool_.back()] = id;
   }
 }
 
