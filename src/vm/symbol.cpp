@@ -14,7 +14,7 @@ void SymbolPool::Reset() {
   pool_.clear();
 }
 
-std::uint32_t SymbolPool::LogId(std::string_view symbol) {
+SymId SymbolPool::LogId(std::string_view symbol) {
   // try to find symbol
   auto it = defs_.find(symbol);
   if (it != defs_.end()) {
@@ -22,22 +22,20 @@ std::uint32_t SymbolPool::LogId(std::string_view symbol) {
   }
   else {
     // store to pool
-    std::uint32_t id = pool_.size();
+    SymId id = pool_.size();
     PushNewSymbol(symbol);
     // update symbol definition
     return defs_[pool_.back().get()] = id;
   }
 }
 
-std::optional<std::uint32_t> SymbolPool::FindId(
-    std::string_view symbol) const {
+std::optional<SymId> SymbolPool::FindId(std::string_view symbol) const {
   auto it = defs_.find(symbol);
   if (it != defs_.end()) return it->second;
   return {};
 }
 
-std::optional<std::string_view> SymbolPool::FindSymbol(
-    std::uint32_t id) const {
+std::optional<std::string_view> SymbolPool::FindSymbol(SymId id) const {
   if (id < pool_.size()) return pool_[id].get();
   return {};
 }
