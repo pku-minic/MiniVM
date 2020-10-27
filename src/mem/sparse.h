@@ -2,6 +2,7 @@
 #define MINIVM_MEM_SPARSE_H_
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 #include <cstdint>
 
@@ -11,12 +12,16 @@ class SparseMemoryPool : public MemoryPoolInterface {
  public:
   SparseMemoryPool() {}
 
-  std::uint32_t Allocate(std::uint32_t size) override;
-  void *GetAddress(std::uint32_t id) const override;
+  bool Allocate(SymId sym, std::uint32_t size) override;
+  std::optional<std::uint32_t> GetMemId(SymId sym) const override;
+  void *GetAddressBySym(SymId sym) const override;
+  void *GetAddressById(std::uint32_t id) const override;
 
  private:
   using BytesPtr = std::unique_ptr<std::uint8_t[]>;
 
+  // map of symbol id to memory id
+  std::unordered_map<SymId, std::uint32_t> ids_;
   // all allocated memories
   std::vector<BytesPtr> mems_;
 };
