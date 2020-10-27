@@ -11,7 +11,6 @@
 
 %{
 
-#include <iostream>
 #include <cstdint>
 
 #include "vm/instcont.h"
@@ -70,7 +69,6 @@ InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
 }
 
 // all tokens
-%token END_OF_FILE 0
 %token EOL VAR IF GOTO PARAM CALL RETURN ADDROFOP END
 %token <str_val> LABEL FUNCTION SYMBOL
 %token <int_val> NUM
@@ -84,17 +82,17 @@ InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
 
 Program
   : /* Empty */
-  | Program Declaration
-  | Program FunctionDecl
-  | Program END_OF_FILE { cont.SealContainer(); }
+  | Program Declaration EOL
+  | Program FunctionDef EOL
+  | Program EOL { cont.SealContainer(); }
   ;
 
-FunctionDecl
-  : FunctionName Statements FunctionEnd
+FunctionDef
+  : FunctionName EOL Statements FunctionEnd
   ;
 
 FunctionName
-  : FUNCTION '[' NUM ']' EOL {
+  : FUNCTION '[' NUM ']' {
     cont.LogLineNum(@$.first_line);
     cont.EnterFunc($3);
     cont.PushLabel($1);
@@ -102,15 +100,15 @@ FunctionName
   ;
 
 FunctionEnd
-  : END FUNCTION EOL { cont.ExitFunc(); }
+  : END FUNCTION { cont.ExitFunc(); }
   ;
 
 Declaration
-  : VAR SYMBOL EOL {
+  : VAR SYMBOL {
     cont.LogLineNum(@$.first_line);
     cont.PushVar($2);
   }
-  | VAR NUM SYMBOL EOL {
+  | VAR NUM SYMBOL {
     cont.LogLineNum(@$.first_line);
     cont.PushLoad($2);
     cont.PushArr($3);
@@ -118,10 +116,14 @@ Declaration
   ;
 
 Statements
-  : Expression
-  | Declaration
-  | Statements Expression
-  | Statements Declaration
+  : Statement
+  | Statements Statement
+  ;
+
+Statement
+  : Expression EOL
+  | Declaration EOL
+  | EOL
   ;
 
 RightValue
@@ -135,14 +137,14 @@ BinOp
   ;
 
 Expression
-  : SYMBOL '=' RightValue BinOp RightValue EOL {
+  : SYMBOL '=' RightValue BinOp RightValue {
     cont.LogLineNum(@$.first_line);
     $3.GenerateLoad(cont);
     $5.GenerateLoad(cont);
     cont.PushOp(GetBinaryOp(cont, $4));
     cont.PushStore($1);
   }
-  | SYMBOL '=' OP RightValue EOL {
+  | SYMBOL '=' OP RightValue {
     cont.LogLineNum(@$.first_line);
     $4.GenerateLoad(cont);
     auto op = InstOp::Add;
@@ -154,66 +156,65 @@ Expression
     cont.PushOp(op);
     cont.PushStore($1);
   }
-  | SYMBOL '=' ADDROFOP SYMBOL EOL {
+  | SYMBOL '=' ADDROFOP SYMBOL {
     cont.PushLoad(0);
     cont.PushLdAddr($4);
     cont.PushStore($1);
   }
-  | SYMBOL '=' RightValue EOL {
+  | SYMBOL '=' RightValue {
     cont.LogLineNum(@$.first_line);
     $3.GenerateLoad(cont);
     cont.PushStore($1);
   }
-  | SYMBOL '[' RightValue ']' '=' RightValue EOL {
+  | SYMBOL '[' RightValue ']' '=' RightValue {
     cont.LogLineNum(@$.first_line);
     $6.GenerateLoad(cont);
     $3.GenerateLoad(cont);
     cont.PushLdAddr($1);
     cont.PushStore();
   }
-  | SYMBOL '=' SYMBOL '[' RightValue ']' EOL {
+  | SYMBOL '=' SYMBOL '[' RightValue ']' {
     cont.LogLineNum(@$.first_line);
     $5.GenerateLoad(cont);
     cont.PushLdAddr($3);
     cont.PushLoad();
     cont.PushStore($1);
   }
-  | IF RightValue LOGICOP RightValue GOTO LABEL EOL {
+  | IF RightValue LOGICOP RightValue GOTO LABEL {
     cont.LogLineNum(@$.first_line);
     $2.GenerateLoad(cont);
     $4.GenerateLoad(cont);
     cont.PushOp(GetBinaryOp(cont, $3));
     cont.PushBnz($6);
   }
-  | GOTO LABEL EOL {
+  | GOTO LABEL {
     cont.LogLineNum(@$.first_line);
     cont.PushJump($2);
   }
-  | LABEL ':' EOL { cont.PushLabel($1); }
-  | PARAM RightValue EOL {
+  | LABEL ':' { cont.PushLabel($1); }
+  | PARAM RightValue {
     cont.LogLineNum(@$.first_line);
     $2.GenerateLoad(cont);
     cont.PushOp(InstOp::Param);
   }
-  | CALL FUNCTION EOL {
+  | CALL FUNCTION {
     cont.LogLineNum(@$.first_line);
     cont.PushCall($2);
   }
-  | SYMBOL '=' CALL FUNCTION EOL {
+  | SYMBOL '=' CALL FUNCTION {
     cont.LogLineNum(@$.first_line);
     cont.PushCall($4);
     cont.PushStore($1);
   }
-  | RETURN RightValue EOL {
+  | RETURN RightValue {
     cont.LogLineNum(@$.first_line);
     $2.GenerateLoad(cont);
     cont.PushOp(InstOp::Ret);
   }
-  | RETURN EOL {
+  | RETURN {
     cont.LogLineNum(@$.first_line);
     cont.PushOp(InstOp::Ret);
   }
-  | EOL
   ;
 
 %%
