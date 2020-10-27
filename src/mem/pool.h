@@ -1,22 +1,29 @@
 #ifndef MINIVM_MEM_POOL_H_
 #define MINIVM_MEM_POOL_H_
 
+#include <optional>
 #include <memory>
 #include <functional>
 #include <cstdint>
+
+#include "vm/define.h"
 
 // interface of memory pool
 class MemoryPoolInterface {
  public:
   virtual ~MemoryPoolInterface() = default;
 
-  // allocate a new memory with the specific size
-  // returns the id of allocated memory
-  virtual std::uint32_t Allocate(std::uint32_t size) = 0;
-
-  // get the base address of the specific memory
+  // allocate a new memory with the specific size for a symbol
+  // returns false if failed
+  virtual bool Allocate(SymId sym, std::uint32_t size) = 0;
+  // get id of allocated memory oe the specific symbol
+  virtual std::optional<std::uint32_t> GetMemId(SymId sym) const = 0;
+  // get the memory base address of the specific symbol
   // returns 'nullptr' if failed
-  virtual void *GetAddress(std::uint32_t id) const = 0;
+  virtual void *GetAddressBySym(SymId sym) const = 0;
+  // get the memory base address of the specific memory id
+  // returns 'nullptr' if failed
+  virtual void *GetAddressById(std::uint32_t id) const = 0;
 };
 
 // pointer to memory pool
