@@ -36,7 +36,7 @@ VMInst *VMInstContainer::GetLastInst() {
   return insts.empty() ? nullptr : &insts.back();
 }
 
-std::uint32_t VMInstContainer::DefSymbol(std::string_view sym) {
+SymId VMInstContainer::DefSymbol(std::string_view sym) {
   auto id = sym_pool_.LogId(sym);
   if (global_env_.count(id) || !cur_env_->insert(id).second) {
     LogError("symbol has already been defined", sym);
@@ -45,7 +45,7 @@ std::uint32_t VMInstContainer::DefSymbol(std::string_view sym) {
   return id;
 }
 
-std::uint32_t VMInstContainer::GetSymbol(std::string_view sym) {
+SymId VMInstContainer::GetSymbol(std::string_view sym) {
   auto id = sym_pool_.FindId(sym);
   if (!id || (!cur_env_->count(*id) && !global_env_.count(*id))) {
     LogError("using undefined symbol", sym);

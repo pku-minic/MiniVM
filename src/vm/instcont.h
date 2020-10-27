@@ -90,9 +90,9 @@ class VMInstContainer {
   // returns 'nullptr' if failed
   VMInst *GetLastInst();
   // define new symbol, and check for conflict
-  std::uint32_t DefSymbol(std::string_view sym);
+  SymId DefSymbol(std::string_view sym);
   // check if symbol has not been defined, and get symbol id
-  std::uint32_t GetSymbol(std::string_view sym);
+  SymId GetSymbol(std::string_view sym);
   // add next pc address to backfill list
   // should be used before instruction insertion
   void LogRelatedInsts(std::string_view label);
@@ -104,7 +104,7 @@ class VMInstContainer {
   // current line number & function parameter count
   std::uint32_t cur_line_num_;
   // global & local & current environment
-  std::unordered_set<std::uint32_t> global_env_, local_env_, *cur_env_;
+  std::unordered_set<SymId> global_env_, local_env_, *cur_env_;
   // line number corresponding to pc addresses (for debugging)
   std::unordered_map<std::uint32_t, std::uint32_t> line_defs_;
   // line number of pc addresses (for debugging)
