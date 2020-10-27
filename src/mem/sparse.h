@@ -3,14 +3,14 @@
 
 #include <memory>
 #include <unordered_map>
-#include <vector>
+#include <map>
 #include <cstdint>
 
 #include "mem/pool.h"
 
 class SparseMemoryPool : public MemoryPoolInterface {
  public:
-  SparseMemoryPool() {}
+  SparseMemoryPool() : mem_size_(0) {}
 
   bool Allocate(SymId sym, std::uint32_t size) override;
   std::optional<std::uint32_t> GetMemId(SymId sym) const override;
@@ -23,7 +23,9 @@ class SparseMemoryPool : public MemoryPoolInterface {
   // map of symbol id to memory id
   std::unordered_map<SymId, std::uint32_t> ids_;
   // all allocated memories
-  std::vector<BytesPtr> mems_;
+  std::map<std::uint32_t, BytesPtr> mems_;
+  // size of all allocated memories
+  std::uint32_t mem_size_;
 };
 
 #endif  // MINIVM_MEM_SPARSE_H_
