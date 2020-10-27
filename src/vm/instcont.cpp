@@ -121,7 +121,7 @@ void VMInstContainer::PushLoad(std::string_view sym) {
   PushInst(InstOp::LdVar, sym_id);
 }
 
-void VMInstContainer::PushLoad(std::int32_t imm) {
+void VMInstContainer::PushLoad(VMOpr imm) {
   constexpr auto kLower = -(1 << (kVMInstImmLen - 1));
   constexpr auto kUpper = (1 << (kVMInstImmLen - 1)) - 1;
   constexpr auto kLowerMask = (1u << kVMInstImmLen) - 1;
@@ -135,7 +135,7 @@ void VMInstContainer::PushLoad(std::int32_t imm) {
   }
 }
 
-void VMInstContainer::PushLdReg(std::uint32_t reg_id) {
+void VMInstContainer::PushLdReg(RegId reg_id) {
   // check if last instruction is 'StReg/StRegP reg_id'
   if (auto last = GetLastInst();
       last && (last->op == InstOp::StReg || last->op == InstOp::StRegP)) {
@@ -161,7 +161,7 @@ void VMInstContainer::PushStore(std::string_view sym) {
   PushInst(InstOp::StVar, GetSymbol(sym));
 }
 
-void VMInstContainer::PushStReg(std::uint32_t reg_id) {
+void VMInstContainer::PushStReg(RegId reg_id) {
   PushInst(InstOp::StReg, reg_id);
 }
 
@@ -290,7 +290,7 @@ void VMInstContainer::SealContainer() {
 }
 
 void VMInstContainer::Dump(std::ostream &os) const {
-  for (std::uint32_t pc = 0; pc < insts_.size(); ++pc) {
+  for (VMAddr pc = 0; pc < insts_.size(); ++pc) {
     const auto &inst = insts_[pc];
     os << pc << ":\t" << kInstOpStr[static_cast<int>(inst.op)] << '\t';
     // NOTE: the order of 'case' statements is important
@@ -317,14 +317,14 @@ void VMInstContainer::Dump(std::ostream &os) const {
   }
 }
 
-std::optional<std::uint32_t> VMInstContainer::FindPC(
+std::optional<VMAddr> VMInstContainer::FindPC(
     std::uint32_t line_num) const {
   auto it = line_defs_.find(line_num);
   if (it != line_defs_.end()) return it->second;
   return {};
 }
 
-std::optional<std::uint32_t> VMInstContainer::FindPC(
+std::optional<VMAddr> VMInstContainer::FindPC(
     std::string_view label) const {
   auto it = label_defs_.find(std::string(label));
   if (it != label_defs_.end()) return it->second.pc;
@@ -332,7 +332,7 @@ std::optional<std::uint32_t> VMInstContainer::FindPC(
 }
 
 std::optional<std::uint32_t> VMInstContainer::FindLineNum(
-    std::uint32_t pc) const {
+    VMAddr pc) const {
   auto it = pc_defs_.lower_bound(pc);
   if (it == pc_defs_.end()) return {};
   assert(it != pc_defs_.begin());

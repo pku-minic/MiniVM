@@ -8,8 +8,7 @@
 #include <vector>
 #include <cstdint>
 
-// symbol identifier
-using SymId = std::uint32_t;
+#include "vm/define.h"
 
 // symbol pool, storing all symbols
 class SymbolPool {

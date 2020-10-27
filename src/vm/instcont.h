@@ -32,12 +32,12 @@ class VMInstContainer {
   void PushLabel(std::string_view label);
   void PushLoad();
   void PushLoad(std::string_view sym);
-  void PushLoad(std::int32_t imm);
-  void PushLdReg(std::uint32_t reg_id);
+  void PushLoad(VMOpr imm);
+  void PushLdReg(RegId reg_id);
   void PushLdAddr(std::string_view sym);
   void PushStore();
   void PushStore(std::string_view sym);
-  void PushStReg(std::uint32_t reg_id);
+  void PushStReg(RegId reg_id);
   void PushBnz(std::string_view label);
   void PushJump(std::string_view label);
   void PushCall(std::string_view label);
@@ -64,11 +64,11 @@ class VMInstContainer {
   // dump all stored instructions
   void Dump(std::ostream &os) const;
   // query pc by line number
-  std::optional<std::uint32_t> FindPC(std::uint32_t line_num) const;
+  std::optional<VMAddr> FindPC(std::uint32_t line_num) const;
   // query pc by label
-  std::optional<std::uint32_t> FindPC(std::string_view label) const;
+  std::optional<VMAddr> FindPC(std::string_view label) const;
   // query line number by pc
-  std::optional<std::uint32_t> FindLineNum(std::uint32_t pc) const;
+  std::optional<std::uint32_t> FindLineNum(VMAddr pc) const;
 
   // getters
   const std::vector<VMInst> &insts() const { return insts_; }
@@ -78,9 +78,9 @@ class VMInstContainer {
     // indicates current label has already been defined
     bool defined;
     // pc of current label
-    std::uint32_t pc;
+    VMAddr pc;
     // pc of all instructions that related to current label
-    std::vector<std::uint32_t> related_insts;
+    std::vector<VMAddr> related_insts;
   };
 
   // push instruction to container
@@ -106,9 +106,9 @@ class VMInstContainer {
   // global & local & current environment
   std::unordered_set<SymId> global_env_, local_env_, *cur_env_;
   // line number corresponding to pc addresses (for debugging)
-  std::unordered_map<std::uint32_t, std::uint32_t> line_defs_;
+  std::unordered_map<std::uint32_t, VMAddr> line_defs_;
   // line number of pc addresses (for debugging)
-  std::map<std::uint32_t, std::uint32_t> pc_defs_;
+  std::map<VMAddr, std::uint32_t> pc_defs_;
   // pc address of labels (for debugging & backfilling)
   std::unordered_map<std::string, BackfillInfo> label_defs_;
   // last defined label

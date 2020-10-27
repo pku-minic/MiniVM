@@ -54,6 +54,15 @@ struct VMInst {
   std::uint32_t opr : kVMInstImmLen;
 };
 
+// symbol identifiers
+using SymId = std::uint32_t;
+// static register identifiers
+using RegId = std::uint32_t;
+// pc addresses
+using VMAddr = std::uint32_t;
+// operands
+using VMOpr = std::int32_t;
+
 // name of entry point
 constexpr const char *kVMEntry = "$entry";
 // name of frame area
