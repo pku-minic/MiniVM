@@ -47,7 +47,7 @@ std::uint32_t VMInstContainer::DefSymbol(std::string_view sym) {
 
 std::uint32_t VMInstContainer::GetSymbol(std::string_view sym) {
   auto id = sym_pool_.FindId(sym);
-  if (!id || !cur_env_->count(*id) || !global_env_.count(*id)) {
+  if (!id || (!cur_env_->count(*id) && !global_env_.count(*id))) {
     LogError("using undefined symbol", sym);
     return -1;
   }
@@ -122,8 +122,8 @@ void VMInstContainer::PushLoad(std::string_view sym) {
 }
 
 void VMInstContainer::PushLoad(std::int32_t imm) {
-  constexpr auto kLower = -(1u << (kVMInstImmLen - 1));
-  constexpr auto kUpper = (1u << (kVMInstImmLen - 1)) - 1;
+  constexpr auto kLower = -(1 << (kVMInstImmLen - 1));
+  constexpr auto kUpper = (1 << (kVMInstImmLen - 1)) - 1;
   constexpr auto kLowerMask = (1u << kVMInstImmLen) - 1;
   constexpr auto kUpperMask = (1u << (32 - kVMInstImmLen)) - 1;
   if (imm >= kLower && imm <= kUpper) {
@@ -210,6 +210,8 @@ void VMInstContainer::LogError(std::string_view message,
 
 void VMInstContainer::LogLineNum(std::uint32_t line_num) {
   cur_line_num_ = line_num;
+  // store local line number definitions only
+  if (cur_env_ == &global_env_) return;
   line_defs_[line_num] = insts_.size();
   pc_defs_[insts_.size()] = line_num;
 }
