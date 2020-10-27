@@ -36,7 +36,9 @@ AddrOfOp    &
 {WhiteSp}   { /* ignore white spaces */ }
 {Comment}   { /* ignore line comments */ }
 
-"\n"        { return EOL; }
+"\n"        { eeyore_lloc.first_line = yylineno;
+              eeyore_lloc.last_line = yylineno;
+              return EOL; }
 
 "var"       { return VAR; }
 "if"        { return IF; }

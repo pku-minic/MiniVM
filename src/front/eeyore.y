@@ -27,6 +27,9 @@ InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
 
 %}
 
+// enable line number
+%locations
+
 // parameter of 'yyparse' function
 %parse-param { VMInstContainer &cont }
 
