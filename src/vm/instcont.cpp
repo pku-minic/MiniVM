@@ -248,9 +248,10 @@ void VMInstContainer::SealContainer() {
   // insert all global instructions
   insts_.insert(insts_.end(), global_insts_.begin(), global_insts_.end());
   global_insts_.clear();
-  // insert main function call
+  // insert main function call & return
   cur_env_ = &local_env_;
   PushCall(kVMMain);
+  PushOp(InstOp::Ret);
   // traverse all label definitions
   for (auto it = label_defs_.begin(); it != label_defs_.end();) {
     auto &&[label, info] = *it;
