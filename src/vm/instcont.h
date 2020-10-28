@@ -35,9 +35,12 @@ class VMInstContainer {
   void PushLoad(VMOpr imm);
   void PushLdReg(RegId reg_id);
   void PushLdAddr(std::string_view sym);
+  void PushLdFrame(VMOpr offset);
+  void PushLdFrameAddr(VMOpr offset);
   void PushStore();
   void PushStore(std::string_view sym);
   void PushStReg(RegId reg_id);
+  void PushStFrame(VMOpr offset);
   void PushBnz(std::string_view label);
   void PushJump(std::string_view label);
   void PushCall(std::string_view label);

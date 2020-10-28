@@ -153,6 +153,16 @@ void VMInstContainer::PushLdAddr(std::string_view sym) {
   PushInst(InstOp::LdAddr, GetSymbol(sym));
 }
 
+void VMInstContainer::PushLdFrame(VMOpr offset) {
+  PushLdFrameAddr(offset);
+  PushLoad();
+}
+
+void VMInstContainer::PushLdFrameAddr(VMOpr offset) {
+  PushLoad(offset * 4);
+  PushLdAddr(kVMFrame);
+}
+
 void VMInstContainer::PushStore() {
   PushInst(InstOp::St);
 }
@@ -163,6 +173,11 @@ void VMInstContainer::PushStore(std::string_view sym) {
 
 void VMInstContainer::PushStReg(RegId reg_id) {
   PushInst(InstOp::StReg, reg_id);
+}
+
+void VMInstContainer::PushStFrame(VMOpr offset) {
+  PushLdFrameAddr(offset);
+  PushStore();
 }
 
 void VMInstContainer::PushBnz(std::string_view label) {
