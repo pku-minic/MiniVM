@@ -16,9 +16,9 @@
 #include "tigger.parser.hpp"
 
 // get 'op_val' of the specific operator
-TokenOp GetOpVal(std::string_view op);
+static TokenOp GetOpVal(std::string_view op);
 // get 'reg_val' of the specific register
-TokenReg GetRegVal(std::string_view reg);
+static TokenReg GetRegVal(std::string_view reg);
 
 %}
 
@@ -62,7 +62,7 @@ LogicOp     !=|==|>|<|>=|<=|\|\||&&
 
 %%
 
-TokenOp GetOpVal(std::string_view op) {
+static TokenOp GetOpVal(std::string_view op) {
   const char *kOpStr[] = {TOKEN_OPERATORS(TOKEN_EXPAND_SECOND)};
   int op_val = 0;
   for (const auto &i : kOpStr) {
@@ -73,7 +73,7 @@ TokenOp GetOpVal(std::string_view op) {
   return TokenOp::Add;
 }
 
-TokenReg GetRegVal(std::string_view reg) {
+static TokenReg GetRegVal(std::string_view reg) {
   const char *kRegStr[] = {TOKEN_REGISTERS(TOKEN_EXPAND_SECOND)};
   int reg_val = 0;
   for (const auto &i : kRegStr) {

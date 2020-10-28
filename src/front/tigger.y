@@ -23,7 +23,7 @@ int yylex();
 void yyerror(VMInstContainer &cont, const char *message);
 
 // convert binary 'TokenOp' to 'InstOp'
-InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
+static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
 
 %}
 
@@ -212,7 +212,7 @@ void yyerror(VMInstContainer &cont, const char *message) {
   cont.LogError(message);
 }
 
-InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op) {
+static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op) {
   auto op = InstOp::Add;
   switch (bin_op) {
     case TokenOp::Add: op = InstOp::Add; break;

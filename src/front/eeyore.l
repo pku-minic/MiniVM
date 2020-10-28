@@ -16,7 +16,7 @@
 #include "eeyore.parser.hpp"
 
 // get 'op_val' of the specific operator
-TokenOp GetOpVal(std::string_view op);
+static TokenOp GetOpVal(std::string_view op);
 
 %}
 
@@ -58,7 +58,7 @@ AddrOfOp    &
 
 %%
 
-TokenOp GetOpVal(std::string_view op) {
+static TokenOp GetOpVal(std::string_view op) {
   const char *kOpStr[] = {TOKEN_OPERATORS(TOKEN_EXPAND_SECOND)};
   int op_val = 0;
   for (const auto &i : kOpStr) {
