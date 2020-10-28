@@ -109,8 +109,8 @@ FunctionDef
 FunctionHeader
   : FUNCTION '[' NUM ']' {
     cont.LogLineNum(@$.first_line);
-    cont.EnterFunc($3);
     cont.PushLabel($1);
+    cont.EnterFunc($3);
   }
   ;
 

@@ -82,28 +82,32 @@ FunctionDef
 FunctionHeader
   : FUNCTION '[' NUM ']' '[' NUM ']' {
     cont.LogLineNum(@$.first_line);
-    cont.EnterFunc($3, $6);
     cont.PushLabel($1);
+    cont.EnterFunc($3, $6);
   }
   ;
 
 Expressions
-  : Expression EOL
-  | Expressions Expression EOL
-  | EOL
+  : FullExpression
+  | Expressions FullExpression
   ;
 
 FunctionEnd
   : END FUNCTION { cont.ExitFunc(); }
   ;
 
+FullExpression
+  : Expression EOL
+  | EOL
+  ;
+
 Expression
-  : VARIABLE '=' Reg BinOp Reg {
+  : Reg '=' Reg BinOp Reg {
     cont.LogLineNum(@$.first_line);
     cont.PushLdReg($3);
     cont.PushLdReg($5);
     cont.PushOp(GetBinaryOp(cont, $4));
-    cont.PushStore($1);
+    cont.PushStReg($1);
   }
   | Reg '=' Reg BinOp NUM {
     cont.LogLineNum(@$.first_line);
@@ -192,6 +196,7 @@ Expression
   }
   | LOADADDR VARIABLE Reg {
     cont.LogLineNum(@$.first_line);
+    cont.PushLoad(0);
     cont.PushLdAddr($2);
     cont.PushStReg($3);
   }
