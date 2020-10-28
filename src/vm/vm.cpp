@@ -294,7 +294,15 @@ std::optional<VMOpr> VM::Run() {
 
   // breakpoint
   VM_LABEL(Break) {
-    // TODO
+    // find debugger callback symbol
+    if (auto id = sym_pool_.FindId(kVMDebugger)) {
+      // find debugger callback
+      auto it = ext_funcs_.find(*id);
+      if (it != ext_funcs_.end()) {
+        // call debugger
+        it->second(*this);
+      }
+    }
     VM_NEXT(1);
   }
 
