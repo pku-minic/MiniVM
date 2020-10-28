@@ -34,7 +34,9 @@ void *SparseMemoryPool::GetAddressBySym(SymId sym) const {
 }
 
 void *SparseMemoryPool::GetAddressById(MemId id) const {
+  if (id >= mem_size_) return nullptr;
   auto it = mems_.upper_bound(id);
-  if (it == mems_.end()) return nullptr;
-  return (--it)->second.get();
+  if (it == mems_.begin()) return nullptr;
+  --it;
+  return it->second.get() + (id - it->first);
 }

@@ -10,6 +10,7 @@
 
 // sparse memory pool
 // naive implementation, cause id of allocated memory can not be reused
+// no boundary check for any accessing operation
 // NOTE: thread unsafe!
 class SparseMemoryPool : public MemoryPoolInterface {
  public:
