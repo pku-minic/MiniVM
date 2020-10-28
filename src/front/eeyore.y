@@ -198,7 +198,6 @@ Expression
   | PARAM RightValue {
     cont.LogLineNum(@$.first_line);
     $2.GenerateLoad(cont);
-    cont.PushOp(InstOp::Param);
   }
   | CALL FUNCTION {
     cont.LogLineNum(@$.first_line);
