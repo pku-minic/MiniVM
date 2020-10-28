@@ -41,6 +41,8 @@ class VM {
     regs_.clear();
     regs_.resize(count);
   }
+  // set id of return value register
+  void set_ret_reg_id(RegId ret_reg_id) { ret_reg_id_ = ret_reg_id; }
 
  private:
   // pair of memory pool pointer and function return address
@@ -75,6 +77,8 @@ class VM {
   MemPoolRef global_mem_pool_;
   // static registers
   std::vector<VMOpr> regs_;
+  // id of return value register
+  RegId ret_reg_id_;
   // external function table
   std::unordered_map<SymId, ExtFunc> ext_funcs_;
 };

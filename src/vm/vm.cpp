@@ -286,7 +286,9 @@ std::optional<VMOpr> VM::Run() {
   VM_LABEL(Ret) {
     auto addr_ofs = mems_.top().second - pc_;
     mems_.pop();
-    if (mems_.empty()) return PopValue();
+    if (mems_.empty()) {
+      return regs_.empty() ? PopValue() : regs_[ret_reg_id_];
+    }
     VM_NEXT(addr_ofs);
   }
 
