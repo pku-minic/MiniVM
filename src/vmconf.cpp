@@ -40,7 +40,7 @@ std::size_t last_line_num;
 // last time point
 TimePoint last_time_point;
 // total time of all timers
-TimePoint total_time;
+std::chrono::microseconds total_time;
 
 bool GetArray(VM &vm, VMOpr &ret, MemId arr) {
   // get length
@@ -93,7 +93,7 @@ bool StopTime(VMOpr line_num) {
   auto elapsed = cur_time_point - last_time_point;
   auto us = duration_cast<microseconds>(elapsed).count();
   // increase total time
-  total_time += elapsed;
+  total_time += duration_cast<microseconds>(elapsed);
   // print timer info to stderr
   std::cerr << "Timer#";
   std::cerr << std::setw(3) << std::setfill('0') << timer_id++ << '@';
@@ -101,6 +101,7 @@ bool StopTime(VMOpr line_num) {
   std::cerr << std::setw(4) << std::setfill('0') << line_num << ": ";
   PrintTime(us);
   std::cerr << std::endl;
+  return true;
 }
 
 }  // namespace impl
@@ -235,4 +236,9 @@ void InitTiggerVM(VM &vm) {
   // add library functions
   ADD_LIBS(vm);
   vm.Reset();
+}
+
+void PrintTotalTime() {
+  auto us = impl::total_time.count();
+  impl::PrintTime(us);
 }
