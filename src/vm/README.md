@@ -114,10 +114,12 @@ So what about the details of external functions? We make the following conventio
 MiniVM can accept external functions in the following form:
 
 ```
-func externalFunc(vm_instance: MiniVM): Unit
+func externalFunc(vm_instance: MiniVM): Boolean
 ```
 
 Therefore, external functions can access the current memory pool and all static registers in MiniVM.
+
+If any error occurs during the external function call, the function should return `False`, otherwise it should return `True`.
 
 ### Passing Parameters
 
@@ -134,14 +136,23 @@ MiniVM ***must ensure***:
 
 Considering the impact on performance, we strongly recommend that developers should create two versions of external functions for MiniVM running in Eeyore mode and Tigger mode.
 
-## Extending the Instruction Set
+### Passing Return Values
 
-> Still WIP.
+To be compatible with Eeyore and Tigger, MiniVM supports two methods for passing return values:
+
+1. Push return value to operand stack, or
+2. Store return value to the specific static register, depends on the target architecture of Tigger.
+
+Developer should make sure that the external function uses the correct method to pass the return value, when MiniVM is running in either Eeyore mode or Tigger mode.
 
 ## Debugger of MiniVM
 
 > Still WIP.
 
 ## Bytecode File Format
+
+> Still WIP.
+
+## Extending the Instruction Set
 
 > Still WIP.
