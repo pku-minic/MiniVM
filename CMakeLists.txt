@@ -14,10 +14,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # enable all warnings and treat them as errors
 if(MSVC)
   add_compile_options(/W3 /WX)
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  add_compile_options(-Wall -Wno-init-list-lifetime -Werror)
 else()
   add_compile_options(-Wall -Werror)
+endif()
+
+# disable warnings caused by old version of Flex
+if(MSVC)
+  # TODO
+else()
+  add_compile_options(-Wall -Werror -Wno-register)
 endif()
 
 # some definitions
@@ -32,21 +37,21 @@ find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
 # generate lexer/parser of Eeyore
-flex_target(EeyoreLexer front/eeyore.l
+flex_target(EeyoreLexer src/front/eeyore.l
             ${CMAKE_CURRENT_BINARY_DIR}/eeyore.lexer.cpp
-            COMPILE_FLAGS -+ -P eeyore_)
-bison_target(EeyoreParser front/eeyore.y
+            COMPILE_FLAGS "-P eeyore_")
+bison_target(EeyoreParser src/front/eeyore.y
              ${CMAKE_CURRENT_BINARY_DIR}/eeyore.parser.cpp
-             COMPILE_FLAGS -p eeyore_)
+             COMPILE_FLAGS "-p eeyore_")
 add_flex_bison_dependency(EeyoreLexer EeyoreParser)
 
 # generate lexer/parser of Tigger
-flex_target(TiggerLexer front/tigger.l
+flex_target(TiggerLexer src/front/tigger.l
             ${CMAKE_CURRENT_BINARY_DIR}/tigger.lexer.cpp
-            COMPILE_FLAGS -+ -P tigger_)
-bison_target(TiggerParser front/tigger.y
+            COMPILE_FLAGS "-P tigger_")
+bison_target(TiggerParser src/front/tigger.y
              ${CMAKE_CURRENT_BINARY_DIR}/tigger.parser.cpp
-             COMPILE_FLAGS -p tigger_)
+             COMPILE_FLAGS "-p tigger_")
 add_flex_bison_dependency(TiggerLexer TiggerParser)
 
 # project include directories
