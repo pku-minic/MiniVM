@@ -48,6 +48,10 @@ class VM {
 
   // print error message to stderr
   std::optional<VMOpr> LogError(std::string_view message);
+  // pop value from stack and return it
+  VMOpr PopValue();
+  // perform initialization before function call
+  void InitFuncCall();
 
   // symbol pool
   SymbolPool &sym_pool_;
