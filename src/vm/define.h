@@ -69,6 +69,8 @@ using VMOpr = std::int32_t;
 constexpr const char *kVMEntry = "$entry";
 // name of frame area
 constexpr const char *kVMFrame = "$frame";
+// name of debugger callback
+constexpr const char *kVMDebugger = "$debugger";
 // name of main function
 constexpr const char *kVMMain = "f_main";
 
