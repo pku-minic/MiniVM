@@ -19,6 +19,10 @@
 #define TOKEN_EXPAND_FIRST(i, ...)      i,
 // expand second element to comma-separated list
 #define TOKEN_EXPAND_SECOND(i, j, ...)  j,
+// expand elements to ones
+#define TOKEN_EXPAND_ONES(...)          1+
+// count all elements
+#define TOKEN_COUNT(e)                  (e(TOKEN_EXPAND_ONES)0)
 
 enum class TokenOp { TOKEN_OPERATORS(TOKEN_EXPAND_FIRST) };
 enum class TokenReg { TOKEN_REGISTERS(TOKEN_EXPAND_FIRST) };
