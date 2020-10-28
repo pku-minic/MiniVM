@@ -21,7 +21,7 @@ class VM {
   using PoolAddrPair = std::pair<MemPoolPtr, VMAddr>;
   // static registers
   // external functions
-  using ExtFunc = std::function<void(VM &)>;
+  using ExtFunc = std::function<bool(VM &)>;
 
   VM(SymbolPool &sym_pool, VMInstContainer &cont)
       : sym_pool_(sym_pool), cont_(cont) {}
@@ -48,6 +48,8 @@ class VM {
   void set_ret_reg_id(RegId ret_reg_id) { ret_reg_id_ = ret_reg_id; }
 
   // getters
+  // symbol pool
+  SymbolPool &sym_pool() { return sym_pool_; }
   // operand stack
   std::stack<VMOpr> &oprs() { return oprs_; }
   // current memory pool & return address

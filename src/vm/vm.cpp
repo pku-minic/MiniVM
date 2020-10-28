@@ -277,7 +277,10 @@ std::optional<VMOpr> VM::Run() {
     }
     // perform function call
     InitFuncCall();
-    it->second(*this);
+    if (!it->second(*this)) {
+      LogError("error occurred during external function call");
+      return {};
+    }
     // perform return operation
     VM_GOTO(Ret);
   }
