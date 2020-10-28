@@ -17,6 +17,9 @@
 // MiniVM instance
 class VM {
  public:
+  // pair of memory pool pointer and function return address
+  using PoolAddrPair = std::pair<MemPoolPtr, VMAddr>;
+  // static registers
   // external functions
   using ExtFunc = std::function<void(VM &)>;
 
@@ -44,10 +47,15 @@ class VM {
   // set id of return value register
   void set_ret_reg_id(RegId ret_reg_id) { ret_reg_id_ = ret_reg_id; }
 
- private:
-  // pair of memory pool pointer and function return address
-  using PoolAddrPair = std::pair<MemPoolPtr, VMAddr>;
+  // getters
+  // operand stack
+  std::stack<VMOpr> &oprs() { return oprs_; }
+  // current memory pool & return address
+  PoolAddrPair &pool_addr_pair() { return mems_.top(); }
+  // static registers
+  VMOpr &regs(RegId id) { return regs_[id]; }
 
+ private:
   // print error message to stderr
   void LogError(std::string_view message) const;
   // pop value from stack and return it
