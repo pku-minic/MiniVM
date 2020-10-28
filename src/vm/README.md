@@ -147,7 +147,11 @@ Developer should make sure that the external function uses the correct method to
 
 ## Debugger of MiniVM
 
-注册为外部函数 $debugger
+MiniVM does not have a built-in debugger, but it supports the `Break` instruction. When this instruction is executed, MiniVM will try to find and call an external function called `$debugger`.
+
+Unlike the `Call`/`CallExt` instruction, there are no new memory pools will be created at this time. All internal states of MiniVM, such as the operand stack and the static registers, will be retained.
+
+When `$debugger` returns, MiniVM will check the return value. If it's `False`, the execution process will be interrupted.
 
 ## Gopher Bytecode File Format
 
