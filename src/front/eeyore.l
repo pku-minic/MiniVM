@@ -6,7 +6,6 @@
 
 %{
 
-#include <iostream>
 #include <string_view>
 #include <cstdlib>
 #include <cassert>
@@ -21,7 +20,7 @@ TokenOp GetOpVal(std::string_view op);
 
 %}
 
-WhiteSp     [ \t\r]
+WhiteSp     [ \t\r\v\f]
 Comment     \/\/.*
 Label       l[0-9]+
 Function    f_[_a-zA-Z][_a-zA-Z0-9]*

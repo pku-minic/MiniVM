@@ -36,8 +36,8 @@ InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
 // actual value of token/non-terminals
 %union {
   const char *str_val;
-  int         int_val;
-  TokenOp     op_val;
+  std::int32_t int_val;
+  TokenOp op_val;
   // definition for non-terminal 'RightValue'
   struct {
     // accept a symbol
@@ -87,23 +87,7 @@ Program
   : /* Empty */
   | Program Declaration EOL
   | Program FunctionDef EOL
-  | Program EOL { cont.SealContainer(); }
-  ;
-
-FunctionDef
-  : FunctionName EOL Statements FunctionEnd
-  ;
-
-FunctionName
-  : FUNCTION '[' NUM ']' {
-    cont.LogLineNum(@$.first_line);
-    cont.EnterFunc($3);
-    cont.PushLabel($1);
-  }
-  ;
-
-FunctionEnd
-  : END FUNCTION { cont.ExitFunc(); }
+  | Program EOL
   ;
 
 Declaration
@@ -118,25 +102,31 @@ Declaration
   }
   ;
 
+FunctionDef
+  : FunctionHeader EOL Statements FunctionEnd
+  ;
+
+FunctionHeader
+  : FUNCTION '[' NUM ']' {
+    cont.LogLineNum(@$.first_line);
+    cont.EnterFunc($3);
+    cont.PushLabel($1);
+  }
+  ;
+
 Statements
   : Statement
   | Statements Statement
+  ;
+
+FunctionEnd
+  : END FUNCTION { cont.ExitFunc(); }
   ;
 
 Statement
   : Expression EOL
   | Declaration EOL
   | EOL
-  ;
-
-RightValue
-  : SYMBOL { $$.Accept($1); }
-  | NUM { $$.Accept($1); }
-  ;
-
-BinOp
-  : OP { $$ = $1; }
-  | LOGICOP { $$ = $1; }
   ;
 
 Expression
@@ -160,6 +150,7 @@ Expression
     cont.PushStore($1);
   }
   | SYMBOL '=' ADDROFOP SYMBOL {
+    cont.LogLineNum(@$.first_line);
     cont.PushLoad(0);
     cont.PushLdAddr($4);
     cont.PushStore($1);
@@ -217,6 +208,16 @@ Expression
     cont.LogLineNum(@$.first_line);
     cont.PushOp(InstOp::Ret);
   }
+  ;
+
+RightValue
+  : SYMBOL { $$.Accept($1); }
+  | NUM { $$.Accept($1); }
+  ;
+
+BinOp
+  : OP { $$ = $1; }
+  | LOGICOP { $$ = $1; }
   ;
 
 %%

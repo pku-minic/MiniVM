@@ -12,6 +12,7 @@ int eeyore_parse(VMInstContainer &cont);
 bool ParseEeyore(std::string_view file, VMInstContainer &cont) {
   eeyore_in = fopen(std::string(file).c_str(), "r");
   auto ret = eeyore_parse(cont);
+  cont.SealContainer();
   fclose(eeyore_in);
   FreeAllStrs();
   return !ret;
