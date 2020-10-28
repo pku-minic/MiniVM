@@ -23,7 +23,7 @@ VMOpr VM::PopValue() {
   return ret;
 }
 
-VMOpr *VM::GetAddrById(std::uint32_t id) const {
+VMOpr *VM::GetAddrById(MemId id) const {
   // find in current memory pool
   auto ptr = mems_.top().first->GetAddressById(id);
   if (!ptr) {
@@ -51,7 +51,7 @@ VMOpr *VM::GetAddrBySym(SymId sym) const {
   return reinterpret_cast<VMOpr *>(ptr);
 }
 
-std::optional<std::uint32_t> VM::GetMemId(SymId sym) const {
+std::optional<MemId> VM::GetMemId(SymId sym) const {
   // find in current memory pool
   auto id = mems_.top().first->GetMemId(sym);
   if (!id) {

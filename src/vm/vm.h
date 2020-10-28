@@ -51,11 +51,11 @@ class VM {
   // pop value from stack and return it
   VMOpr PopValue();
   // get address of memory by id
-  VMOpr *GetAddrById(std::uint32_t id) const;
+  VMOpr *GetAddrById(MemId id) const;
   // get address of memory by symbol
   VMOpr *GetAddrBySym(SymId sym) const;
   // get id of memory by symbol
-  std::optional<std::uint32_t> GetMemId(SymId sym) const;
+  std::optional<MemId> GetMemId(SymId sym) const;
   // perform initialization before function call
   void InitFuncCall();
 

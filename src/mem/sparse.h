@@ -16,17 +16,17 @@ class SparseMemoryPool : public MemoryPoolInterface {
   SparseMemoryPool() {}
 
   bool Allocate(SymId sym, std::uint32_t size) override;
-  std::optional<std::uint32_t> GetMemId(SymId sym) const override;
+  std::optional<MemId> GetMemId(SymId sym) const override;
   void *GetAddressBySym(SymId sym) const override;
-  void *GetAddressById(std::uint32_t id) const override;
+  void *GetAddressById(MemId id) const override;
 
  private:
   using BytesPtr = std::unique_ptr<std::uint8_t[]>;
 
   // map of symbol id to memory id
-  std::unordered_map<SymId, std::uint32_t> ids_;
+  std::unordered_map<SymId, MemId> ids_;
   // all allocated memories
-  std::map<std::uint32_t, BytesPtr> mems_;
+  std::map<MemId, BytesPtr> mems_;
   // size of all allocated memories (shared)
   static std::uint32_t mem_size_;
 };
