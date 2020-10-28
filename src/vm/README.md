@@ -13,6 +13,7 @@ MiniVM is a stack-based virtual machine, which means most of the operands requir
 * **Static registers**: storing some static data, designed to execute Tigger IR.
 * **Symbol pool**: holding all symbols, which can be variable names or external function names.
 * **Instruction container**: holding all instructions and debugging information.
+* **Program counter**: holding a pointer to the instruction currently being executed.
 * **External function table**: holding all definitions of external functions.
 
 Considering that static registers are closely related to the target architecture supported by Tigger, although the current Tigger IR only supports the RISC-V architecture, it may support more architectures in the future. Therefore, the count of the static registers should not be fixed.
@@ -70,13 +71,12 @@ Details as follows:
 | StReg   | `reg`     | val               | pop & store val to `reg`                    |
 | StRegP  | `reg`     | val (preserved)   | preserve & store val to `reg`               |
 | Imm     | `imm`     | N/A               | load 24-bit `imm` to stack                  |
-| ImmHi   | `imm`     | val (preserved)   | load `imm`&8 to upper 8-bit of val          |
+| ImmHi   | `imm`     | val (preserved)   | load `imm`&255 to upper 8-bit of val        |
 | Bnz     | `pc`      | cond              | jump to `pc` if cond is not zero            |
 | Jmp     | `pc`      | N/A               | jump to `pc`                                |
 | Call    | `pc`      | N/A               | call function at `pc`                       |
 | CallExt | `sym`     | N/A               | call external function `sym`                |
 | Ret     | N/A       | N/A               | return from a function call                 |
-| Param   | N/A       | param             | push param to stack                         |
 | Break   | N/A       | N/A               | breakpoint, inserted by debugger            |
 | LNot    | N/A       | opr               | perform logical negation                    |
 | LAnd    | N/A       | lhs, rhs          | perform logical AND operation               |

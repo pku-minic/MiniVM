@@ -16,7 +16,7 @@
   e(Bnz) e(Jmp)                                                         \
   /* function call                                                      \
      with absolute target address or symbol name (external function) */ \
-  e(Call) e(CallExt) e(Ret) e(Param)                                    \
+  e(Call) e(CallExt) e(Ret)                                             \
   /* debugging */                                                       \
   e(Break)                                                              \
   /* logical operations */                                              \
@@ -33,6 +33,8 @@
 #define VM_EXPAND_LABEL_LIST(i)   &&VML_##i,
 // define a label of VM threading
 #define VM_LABEL(l)               VML_##l:
+// goto a label of VM threading
+#define VM_GOTO(l)                goto VML_##l
 
 // length of VM instruction (in bits)
 constexpr std::size_t kVMInstLen = 32;
