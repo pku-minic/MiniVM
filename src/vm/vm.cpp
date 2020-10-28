@@ -87,6 +87,19 @@ void VM::InitFuncCall() {
   mems_.push({std::move(pool), pc_ + 1});
 }
 
+bool VM::RegisterFunction(std::string_view name, ExtFunc func) {
+  auto id = sym_pool_.LogId(name);
+  return ext_funcs_.insert({id, func}).second;
+}
+
+std::optional<VMOpr> VM::GetParamFromCurPool(std::size_t param_id) const {
+  auto sym = sym_pool_.FindId("p" + std::to_string(param_id));
+  if (!sym) return {};
+  auto ptr = mems_.top().first->GetAddressBySym(*sym);
+  if (!ptr) return {};
+  return *reinterpret_cast<VMOpr *>(ptr);
+}
+
 void VM::Reset() {
   // reset pc to zero
   pc_ = 0;
@@ -99,11 +112,6 @@ void VM::Reset() {
   mems_.push({std::move(pool), 0});
   // clear all static registers
   regs_.assign(regs_.size(), 0);
-}
-
-bool VM::RegisteFunction(std::string_view name, ExtFunc func) {
-  auto id = sym_pool_.LogId(name);
-  return ext_funcs_.insert({id, func}).second;
 }
 
 std::optional<VMOpr> VM::Run() {

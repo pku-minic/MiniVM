@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 #include <unordered_map>
+#include <cstddef>
 
 #include "vm/define.h"
 #include "vm/symbol.h"
@@ -26,10 +27,13 @@ class VM {
   VM(SymbolPool &sym_pool, VMInstContainer &cont)
       : sym_pool_(sym_pool), cont_(cont) {}
 
+  // register an external function
+  bool RegisterFunction(std::string_view name, ExtFunc func);
+  // read the value of the parameter in current memory pool
+  std::optional<VMOpr> GetParamFromCurPool(std::size_t param_id) const;
+
   // reset internal state
   void Reset();
-  // register an external function
-  bool RegisteFunction(std::string_view name, ExtFunc func);
   // run VM, 'Reset' method must be called before
   // returns top of stack (success) or 'nullopt' (failed)
   std::optional<VMOpr> Run();
