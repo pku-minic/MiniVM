@@ -311,7 +311,7 @@ std::optional<VMOpr> VM::Run() {
       auto it = ext_funcs_.find(*id);
       if (it != ext_funcs_.end()) {
         // call debugger
-        it->second(*this);
+        if (!it->second(*this)) return 0;
       }
     }
     VM_NEXT(1);
