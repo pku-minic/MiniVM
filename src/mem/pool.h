@@ -28,6 +28,8 @@ class MemoryPoolInterface {
 
 // pointer to memory pool
 using MemPoolPtr = std::unique_ptr<MemoryPoolInterface>;
+// reference to memory pool
+using MemPoolRef = MemoryPoolInterface *;
 // factory function of memory pool
 using MemPoolFact = std::function<MemPoolPtr()>;
 
