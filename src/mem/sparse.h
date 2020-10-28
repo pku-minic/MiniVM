@@ -8,9 +8,12 @@
 
 #include "mem/pool.h"
 
+// sparse memory pool
+// naive implementation, cause id of allocated memory can not be reused
+// NOTE: thread unsafe!
 class SparseMemoryPool : public MemoryPoolInterface {
  public:
-  SparseMemoryPool() : mem_size_(0) {}
+  SparseMemoryPool() {}
 
   bool Allocate(SymId sym, std::uint32_t size) override;
   std::optional<std::uint32_t> GetMemId(SymId sym) const override;
@@ -24,8 +27,8 @@ class SparseMemoryPool : public MemoryPoolInterface {
   std::unordered_map<SymId, std::uint32_t> ids_;
   // all allocated memories
   std::map<std::uint32_t, BytesPtr> mems_;
-  // size of all allocated memories
-  std::uint32_t mem_size_;
+  // size of all allocated memories (shared)
+  static std::uint32_t mem_size_;
 };
 
 #endif  // MINIVM_MEM_SPARSE_H_

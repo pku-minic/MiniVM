@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+std::uint32_t SparseMemoryPool::mem_size_ = 0;
+
 bool SparseMemoryPool::Allocate(SymId sym, std::uint32_t size) {
   if (!ids_.insert({sym, mem_size_}).second) return false;
   mems_.insert({mem_size_, std::make_unique<std::uint8_t[]>(size)});
