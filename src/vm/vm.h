@@ -47,9 +47,15 @@ class VM {
   using PoolAddrPair = std::pair<MemPoolPtr, VMAddr>;
 
   // print error message to stderr
-  std::optional<VMOpr> LogError(std::string_view message);
+  void LogError(std::string_view message) const;
   // pop value from stack and return it
   VMOpr PopValue();
+  // get address of memory by id
+  VMOpr *GetAddrById(std::uint32_t id) const;
+  // get address of memory by symbol
+  VMOpr *GetAddrBySym(SymId sym) const;
+  // get id of memory by symbol
+  std::optional<std::uint32_t> GetMemId(SymId sym) const;
   // perform initialization before function call
   void InitFuncCall();
 
@@ -65,6 +71,8 @@ class VM {
   MemPoolFact mem_pool_fact_;
   // memory pool stack
   std::stack<PoolAddrPair> mems_;
+  // global memory pool (avaliable when VM is running)
+  MemPoolRef global_mem_pool_;
   // static registers
   std::vector<VMOpr> regs_;
   // external function table

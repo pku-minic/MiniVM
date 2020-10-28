@@ -6,11 +6,12 @@
 
 #include "xstl/style.h"
 
-std::optional<VMOpr> VM::LogError(std::string_view message) {
+void VM::LogError(std::string_view message) const {
   using namespace xstl;
   std::cerr << style("Br") << "error";
   if (auto line_num = cont_.FindLineNum(pc_)) {
-    std::cerr << style("B") << " (line " << *line_num << ')';
+    std::cerr << style("B") << " (line " << *line_num
+              << ", pc " << pc_ << ')';
   }
   std::cerr << ": " << message << std::endl;
 }
@@ -20,6 +21,48 @@ VMOpr VM::PopValue() {
   auto ret = oprs_.top();
   oprs_.pop();
   return ret;
+}
+
+VMOpr *VM::GetAddrById(std::uint32_t id) const {
+  // find in current memory pool
+  auto ptr = mems_.top().first->GetAddressById(id);
+  if (!ptr) {
+    // find in global memory pool
+    ptr = global_mem_pool_->GetAddressById(id);
+    if (!ptr) {
+      LogError("invalid memory pool address");
+      return nullptr;
+    }
+  }
+  return reinterpret_cast<VMOpr *>(ptr);
+}
+
+VMOpr *VM::GetAddrBySym(SymId sym) const {
+  // find in current memory pool
+  auto ptr = mems_.top().first->GetAddressBySym(sym);
+  if (!ptr) {
+    // find in global memory pool
+    ptr = global_mem_pool_->GetAddressBySym(sym);
+    if (!ptr) {
+      LogError("invalid memory pool address");
+      return nullptr;
+    }
+  }
+  return reinterpret_cast<VMOpr *>(ptr);
+}
+
+std::optional<std::uint32_t> VM::GetMemId(SymId sym) const {
+  // find in current memory pool
+  auto id = mems_.top().first->GetMemId(sym);
+  if (!id) {
+    // find in global memory pool
+    id = global_mem_pool_->GetMemId(sym);
+    if (!id) {
+      LogError("symbol not found in memory pool");
+      return {};
+    }
+  }
+  return id;
 }
 
 void VM::InitFuncCall() {
@@ -51,7 +94,9 @@ void VM::Reset() {
   while (!oprs_.empty()) oprs_.pop();
   while (!mems_.empty()) mems_.pop();
   // make a new memory pool for global environment
-  mems_.push({mem_pool_fact_(), 0});
+  auto pool = mem_pool_fact_();
+  global_mem_pool_ = pool.get();
+  mems_.push({std::move(pool), 0});
   // clear all static registers
   regs_.assign(regs_.size(), 0);
 }
@@ -94,23 +139,21 @@ std::optional<VMOpr> VM::Run() {
 
   // load value from address
   VM_LABEL(Ld) {
-    // get memory pool id
-    std::uint32_t id = PopValue();
     // get address from memory pool
-    auto ptr = mems_.top().first->GetAddressById(id);
-    if (!ptr) return LogError("invalid memory pool address");
+    auto ptr = GetAddrById(PopValue());
+    if (!ptr) return {};
     // push to stack
-    oprs_.push(*reinterpret_cast<VMOpr *>(ptr));
+    oprs_.push(*ptr);
     VM_NEXT(1);
   }
 
   // load variable
   VM_LABEL(LdVar) {
     // get address from memory pool
-    auto ptr = mems_.top().first->GetAddressBySym(inst->opr);
-    if (!ptr) return LogError("invalid memory pool address");
+    auto ptr = GetAddrBySym(inst->opr);
+    if (!ptr) return {};
     // push to stack
-    oprs_.push(*reinterpret_cast<VMOpr *>(ptr));
+    oprs_.push(*ptr);
     VM_NEXT(1);
   }
 
@@ -126,8 +169,8 @@ std::optional<VMOpr> VM::Run() {
     // get offset
     auto offset = PopValue();
     // get memory pool id of symbol
-    auto id = mems_.top().first->GetMemId(inst->opr);
-    if (!id) return LogError("symbol not found in memory pool");
+    auto id = GetMemId(inst->opr);
+    if (!id) return {};
     // push address (id with offset) to stack
     oprs_.push(*id + offset);
     VM_NEXT(1);
@@ -135,33 +178,31 @@ std::optional<VMOpr> VM::Run() {
 
   // store value to address
   VM_LABEL(St) {
-    // get memory pool address (id)
-    std::uint32_t id = PopValue();
     // get address from memory pool
-    auto ptr = mems_.top().first->GetAddressById(id);
-    if (!ptr) return LogError("invalid memory pool address");
+    auto ptr = GetAddrById(PopValue());
+    if (!ptr) return {};
     // write value
-    *reinterpret_cast<VMOpr *>(ptr) = PopValue();
+    *ptr = PopValue();
     VM_NEXT(1);
   }
 
   // store variable
   VM_LABEL(StVar) {
     // get address from memory pool
-    auto ptr = mems_.top().first->GetAddressBySym(inst->opr);
-    if (!ptr) return LogError("invalid memory pool address");
+    auto ptr = GetAddrBySym(inst->opr);
+    if (!ptr) return {};
     // write value
-    *reinterpret_cast<VMOpr *>(ptr) = PopValue();
+    *ptr = PopValue();
     VM_NEXT(1);
   }
 
   // store variable and preserve
   VM_LABEL(StVarP) {
     // get address from memory pool
-    auto ptr = mems_.top().first->GetAddressBySym(inst->opr);
-    if (!ptr) return LogError("invalid memory pool address");
+    auto ptr = GetAddrBySym(inst->opr);
+    if (!ptr) return {};
     // write value
-    *reinterpret_cast<VMOpr *>(ptr) = oprs_.top();
+    *ptr = oprs_.top();
     VM_NEXT(1);
   }
 
@@ -231,7 +272,8 @@ std::optional<VMOpr> VM::Run() {
     // get external function
     auto it = ext_funcs_.find(inst->opr);
     if (it == ext_funcs_.end()) {
-      return LogError("invalid external function");
+      LogError("invalid external function");
+      return {};
     }
     // perform function call
     InitFuncCall();
