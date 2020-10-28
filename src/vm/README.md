@@ -22,9 +22,9 @@ The external function table can be modified before MiniVM starts. Developers can
 
 ## Instruction Definition
 
-MiniVM can not directly execute Eeyore or Tigger, so there should be a front end to read Eeyore/Tigger source files, and generate instructions that can be recognized by MiniVM.
+MiniVM can not directly execute Eeyore or Tigger, so there should be a front end to read Eeyore/Tigger source files, and generate instructions that can be recognized by MiniVM. The instruction set of MiniVM is called Gopher (in order to match with Eeyore and Tigger).
 
-The structure of MiniVM instruction is defined as follows:
+The structure of Gopher instruction is defined as follows:
 
 ```
 0   7 8       31
@@ -147,12 +147,12 @@ Developer should make sure that the external function uses the correct method to
 
 ## Debugger of MiniVM
 
+注册为外部函数 $debugger
+
+## Gopher Bytecode File Format
+
 > Still WIP.
 
-## Bytecode File Format
-
-> Still WIP.
-
-## Extending the Instruction Set
+## Extending the Gopher
 
 > Still WIP.
