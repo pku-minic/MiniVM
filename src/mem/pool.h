@@ -8,6 +8,9 @@
 
 #include "vm/define.h"
 
+// type of memory id
+using MemId = std::uint32_t;
+
 // interface of memory pool
 class MemoryPoolInterface {
  public:
@@ -16,14 +19,14 @@ class MemoryPoolInterface {
   // allocate a new memory with the specific size for a symbol
   // returns false if failed
   virtual bool Allocate(SymId sym, std::uint32_t size) = 0;
-  // get id of allocated memory oe the specific symbol
-  virtual std::optional<std::uint32_t> GetMemId(SymId sym) const = 0;
+  // get id of allocated memory of the specific symbol
+  virtual std::optional<MemId> GetMemId(SymId sym) const = 0;
   // get the memory base address of the specific symbol
   // returns 'nullptr' if failed
   virtual void *GetAddressBySym(SymId sym) const = 0;
   // get the memory base address of the specific memory id
   // returns 'nullptr' if failed
-  virtual void *GetAddressById(std::uint32_t id) const = 0;
+  virtual void *GetAddressById(MemId id) const = 0;
 };
 
 // pointer to memory pool
