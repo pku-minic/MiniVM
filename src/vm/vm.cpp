@@ -23,68 +23,46 @@ VMOpr VM::PopValue() {
   return ret;
 }
 
-VMOpr *VM::GetAddrById(MemId id) const {
-  // find in current memory pool
-  auto ptr = mems_.top().first->GetAddressById(id);
+VMOpr *VM::GetAddrById(MemId id) {
+  // find in memory pool
+  auto ptr = mem_pool_->GetAddress(id);
   if (!ptr) {
-    // find in global memory pool
-    ptr = global_mem_pool_->GetAddressById(id);
-    if (!ptr) {
-      LogError("invalid memory pool address");
-      return nullptr;
-    }
+    LogError("invalid memory pool address");
+    return nullptr;
   }
   return reinterpret_cast<VMOpr *>(ptr);
 }
 
-VMOpr *VM::GetAddrBySym(SymId sym) const {
-  // find in current memory pool
-  auto ptr = mems_.top().first->GetAddressBySym(sym);
-  if (!ptr) {
-    // find in global memory pool
-    ptr = global_mem_pool_->GetAddressBySym(sym);
-    if (!ptr) {
-      LogError("invalid memory pool address");
+VMOpr *VM::GetAddrBySym(SymId sym) {
+  // find in current environment
+  auto &env = envs_.top().first;
+  auto it = env.find(sym);
+  if (it == env.end()) {
+    // find in global environment
+    it = global_env_->find(sym);
+    if (it == env.end()) {
+      LogError("symbol not found");
       return nullptr;
     }
   }
-  return reinterpret_cast<VMOpr *>(ptr);
-}
-
-std::optional<MemId> VM::GetMemId(SymId sym) const {
-  // find in current memory pool
-  auto id = mems_.top().first->GetMemId(sym);
-  if (!id) {
-    // find in global memory pool
-    id = global_mem_pool_->GetMemId(sym);
-    if (!id) {
-      LogError("symbol not found in memory pool");
-      return {};
-    }
-  }
-  return id;
+  return &it->second;
 }
 
 void VM::InitFuncCall() {
-  // create new memory pool
-  auto pool = mem_pool_fact_();
+  // save the state of memory pool
+  mem_pool_->SaveState();
+  // add a new environment & return address to stack
+  envs_.push({{}, pc_ + 1});
+  auto &env = envs_.top().first;
   // push parameters
   while (!oprs_.empty()) {
     // get symbol id of parameter
     auto sym = sym_pool_.LogId("p" + std::to_string(oprs_.size() - 1));
-    // allocate new memory
-    auto ret = pool->Allocate(sym, 4);
+    // write value
+    auto ret = env.insert({sym, PopValue()}).second;
     static_cast<void>(ret);
     assert(ret);
-    // get pointer to memory
-    auto ptr = pool->GetAddressBySym(sym);
-    assert(ptr);
-    // write value
-    *reinterpret_cast<VMOpr *>(ptr) = oprs_.top();
-    oprs_.pop();
   }
-  // add memory pool & return address to stack
-  mems_.push({std::move(pool), pc_ + 1});
 }
 
 bool VM::RegisterFunction(std::string_view name, ExtFunc func) {
@@ -95,9 +73,10 @@ bool VM::RegisterFunction(std::string_view name, ExtFunc func) {
 std::optional<VMOpr> VM::GetParamFromCurPool(std::size_t param_id) const {
   auto sym = sym_pool_.FindId("p" + std::to_string(param_id));
   if (!sym) return {};
-  auto ptr = mems_.top().first->GetAddressBySym(*sym);
-  if (!ptr) return {};
-  return *reinterpret_cast<VMOpr *>(ptr);
+  const auto &env = envs_.top().first;
+  auto it = env.find(*sym);
+  if (it == env.end()) return {};
+  return it->second;
 }
 
 void VM::Reset() {
@@ -105,11 +84,12 @@ void VM::Reset() {
   pc_ = 0;
   // clear all stacks
   while (!oprs_.empty()) oprs_.pop();
-  while (!mems_.empty()) mems_.pop();
-  // make a new memory pool for global environment
-  auto pool = mem_pool_fact_();
-  global_mem_pool_ = pool.get();
-  mems_.push({std::move(pool), 0});
+  while (!envs_.empty()) envs_.pop();
+  // make a new environment for global environment
+  envs_.push({{}, 0});
+  global_env_ = &envs_.top().first;
+  // save current state of memory pool
+  mem_pool_->SaveState();
   // clear all static registers
   regs_.assign(regs_.size(), 0);
 }
@@ -128,7 +108,7 @@ std::optional<VMOpr> VM::Run() {
 
   // allocate memory for variable
   VM_LABEL(Var) {
-    auto ret = mems_.top().first->Allocate(inst->opr, 4);
+    auto ret = envs_.top().first.insert({inst->opr, 0}).second;
     static_cast<void>(ret);
     assert(ret);
     VM_NEXT(1);
@@ -136,10 +116,10 @@ std::optional<VMOpr> VM::Run() {
 
   // allocate memory for array
   VM_LABEL(Arr) {
-    // get size of array
-    std::uint32_t size = PopValue();
     // allocate a new memory
-    auto ret = mems_.top().first->Allocate(inst->opr, size);
+    auto id = mem_pool_->Allocate(PopValue());
+    // add to environment
+    auto ret = envs_.top().first.insert({inst->opr, id}).second;
     static_cast<void>(ret);
     assert(ret);
     VM_NEXT(1);
@@ -169,18 +149,6 @@ std::optional<VMOpr> VM::Run() {
   VM_LABEL(LdReg) {
     assert(inst->opr < regs_.size());
     oprs_.push(regs_[inst->opr]);
-    VM_NEXT(1);
-  }
-
-  // load address of symbol
-  VM_LABEL(LdAddr) {
-    // get offset
-    auto offset = PopValue();
-    // get memory pool id of symbol
-    auto id = GetMemId(inst->opr);
-    if (!id) return {};
-    // push address (id with offset) to stack
-    oprs_.push(*id + offset);
     VM_NEXT(1);
   }
 
@@ -295,9 +263,13 @@ std::optional<VMOpr> VM::Run() {
 
   // return from function call
   VM_LABEL(Ret) {
-    auto addr_ofs = mems_.top().second - pc_;
-    mems_.pop();
-    if (mems_.empty()) {
+    // restore the state of memory pool
+    mem_pool_->RestoreState();
+    // get offset of return address
+    auto addr_ofs = envs_.top().second - pc_;
+    envs_.pop();
+    // check if need to stop execution
+    if (envs_.empty()) {
       return regs_.empty() ? PopValue() : regs_[ret_reg_id_];
     }
     VM_NEXT(addr_ofs);

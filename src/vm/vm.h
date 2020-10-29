@@ -1,13 +1,13 @@
 #ifndef MINIVM_VM_VM_H_
 #define MINIVM_VM_VM_H_
 
+#include <unordered_map>
 #include <functional>
 #include <string_view>
 #include <optional>
 #include <stack>
 #include <utility>
 #include <vector>
-#include <unordered_map>
 #include <cstddef>
 
 #include "vm/define.h"
@@ -18,8 +18,10 @@
 // MiniVM instance
 class VM {
  public:
-  // pair of memory pool pointer and function return address
-  using PoolAddrPair = std::pair<MemPoolPtr, VMAddr>;
+  // environment
+  using Environment = std::unordered_map<SymId, VMOpr>;
+  // pair of environment and function return address
+  using EnvAddrPair = std::pair<Environment, VMAddr>;
   // static registers
   // external functions
   using ExtFunc = std::function<bool(VM &)>;
@@ -39,9 +41,9 @@ class VM {
   std::optional<VMOpr> Run();
 
   // setters
-  // set memory pool factory
-  void set_mem_pool_fact(MemPoolFact mem_pool_fact) {
-    mem_pool_fact_ = mem_pool_fact;
+  // set memory pool
+  void set_mem_pool(MemPoolPtr mem_pool) {
+    mem_pool_ = std::move(mem_pool);
   }
   // set count of static registers
   void set_static_reg_count(std::uint32_t count) {
@@ -56,8 +58,10 @@ class VM {
   SymbolPool &sym_pool() { return sym_pool_; }
   // operand stack
   std::stack<VMOpr> &oprs() { return oprs_; }
-  // current memory pool & return address
-  PoolAddrPair &pool_addr_pair() { return mems_.top(); }
+  // memory pool
+  const MemPoolPtr &mem_pool() const { return mem_pool_; }
+  // current environment & return address
+  EnvAddrPair &env_addr_pair() { return envs_.top(); }
   // static registers
   VMOpr &regs(RegId id) { return regs_[id]; }
 
@@ -67,11 +71,9 @@ class VM {
   // pop value from stack and return it
   VMOpr PopValue();
   // get address of memory by id
-  VMOpr *GetAddrById(MemId id) const;
+  VMOpr *GetAddrById(MemId id);
   // get address of memory by symbol
-  VMOpr *GetAddrBySym(SymId sym) const;
-  // get id of memory by symbol
-  std::optional<MemId> GetMemId(SymId sym) const;
+  VMOpr *GetAddrBySym(SymId sym);
   // perform initialization before function call
   void InitFuncCall();
 
@@ -83,12 +85,12 @@ class VM {
   VMAddr pc_;
   // operand stack
   std::stack<VMOpr> oprs_;
-  // memory pool factory
-  MemPoolFact mem_pool_fact_;
-  // memory pool stack
-  std::stack<PoolAddrPair> mems_;
-  // global memory pool (avaliable when VM is running)
-  MemPoolRef global_mem_pool_;
+  // memory pool
+  MemPoolPtr mem_pool_;
+  // environment stack
+  std::stack<EnvAddrPair> envs_;
+  // global environment
+  Environment *global_env_;
   // static registers
   std::vector<VMOpr> regs_;
   // id of return value register
