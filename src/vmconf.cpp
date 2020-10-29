@@ -42,11 +42,33 @@ TimePoint last_time_point;
 // total time of all timers
 std::chrono::microseconds total_time;
 
+// timer guard
+// print total elapsed time to stderr when the program exits
+// if 'StartTime'/'StopTime' have ever been called
+static struct TimerGuard {
+  ~TimerGuard() {
+    if (!timer_id) return;
+    auto us = total_time.count();
+    PrintTime(us);
+  }
+
+  static void PrintTime(std::uint64_t us) {
+    constexpr std::uint64_t kSecond = 1000 * 1000;
+    constexpr std::uint64_t kMinute = 60 * kSecond;
+    constexpr std::uint64_t kHour = 60 * kMinute;
+    std::cerr << us / kHour << "H-";
+    us %= kHour;
+    std::cerr << us / kMinute << "M-";
+    us %= kMinute;
+    std::cerr << us / kSecond << "S-" << us % kSecond << "us";
+  }
+} timer_guard;
+
 bool GetArray(VM &vm, VMOpr &ret, MemId arr) {
   // get length
   std::cin >> ret;
   // get address of array
-  auto ptr = vm.pool_addr_pair().first->GetAddressById(arr);
+  auto ptr = vm.mem_pool()->GetAddress(arr);
   if (!ptr) return false;
   // read elements
   for (int i = 0; i < ret; ++i) {
@@ -59,7 +81,7 @@ bool PutArray(VM &vm, VMOpr len, MemId arr) {
   // put length
   std::cout << len << ':';
   // get address of array
-  auto ptr = vm.pool_addr_pair().first->GetAddressById(arr);
+  auto ptr = vm.mem_pool()->GetAddress(arr);
   if (!ptr) return false;
   // put elements
   for (int i = 0; i < len; ++i) {
@@ -75,17 +97,6 @@ bool StartTime(VMOpr line_num) {
   return true;
 }
 
-void PrintTime(std::uint64_t us) {
-  constexpr std::uint64_t kSecond = 1000 * 1000;
-  constexpr std::uint64_t kMinute = 60 * kSecond;
-  constexpr std::uint64_t kHour = 60 * kMinute;
-  std::cerr << us / kHour << "H-";
-  us %= kHour;
-  std::cerr << us / kMinute << "M-";
-  us %= kMinute;
-  std::cerr << us / kSecond << "S-" << us % kSecond << "us";
-}
-
 bool StopTime(VMOpr line_num) {
   using namespace std::chrono;
   // get elapsed time
@@ -99,7 +110,7 @@ bool StopTime(VMOpr line_num) {
   std::cerr << std::setw(3) << std::setfill('0') << timer_id++ << '@';
   std::cerr << std::setw(4) << std::setfill('0') << last_line_num << '-';
   std::cerr << std::setw(4) << std::setfill('0') << line_num << ": ";
-  PrintTime(us);
+  timer_guard.PrintTime(us);
   std::cerr << std::endl;
   return true;
 }
@@ -218,8 +229,7 @@ bool StopTime(VM &vm) {
 void InitEeyoreVM(VM &vm) {
   using namespace eeyore;
   // set memory pool factory function
-  vm.set_mem_pool_fact(
-      []() { return std::make_unique<SparseMemoryPool>(); });
+  vm.set_mem_pool(std::make_unique<SparseMemoryPool>());
   // add library functions
   ADD_LIBS(vm);
   vm.Reset();
@@ -228,17 +238,11 @@ void InitEeyoreVM(VM &vm) {
 void InitTiggerVM(VM &vm) {
   using namespace tigger;
   // set memory pool factory function
-  vm.set_mem_pool_fact(
-      []() { return std::make_unique<DenseMemoryPool>(); });
+  vm.set_mem_pool(std::make_unique<DenseMemoryPool>());
   // initialize static registers
   vm.set_static_reg_count(TOKEN_COUNT(TOKEN_REGISTERS));
   vm.set_ret_reg_id(static_cast<RegId>(TokenReg::A0));
   // add library functions
   ADD_LIBS(vm);
   vm.Reset();
-}
-
-void PrintTotalTime() {
-  auto us = impl::total_time.count();
-  impl::PrintTime(us);
 }
