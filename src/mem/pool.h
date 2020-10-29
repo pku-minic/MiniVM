@@ -17,7 +17,7 @@ class MemoryPoolInterface {
   virtual MemId Allocate(std::uint32_t size) = 0;
   // get the memory base address of the specific memory id
   // returns 'nullptr' if failed
-  virtual void *GetAddress(MemId id) const = 0;
+  virtual void *GetAddress(MemId id) = 0;
 
   // memory pool state manipulations
   // handle size of allocated memory only

@@ -15,7 +15,7 @@ class SparseMemoryPool : public MemoryPoolInterface {
   SparseMemoryPool() : mem_size_(0) {}
 
   MemId Allocate(std::uint32_t size) override;
-  void *GetAddress(MemId id) const override;
+  void *GetAddress(MemId id) override;
   void SaveState() override;
   void RestoreState() override;
 

@@ -13,7 +13,7 @@ MemId SparseMemoryPool::Allocate(std::uint32_t size) {
   return true;
 }
 
-void *SparseMemoryPool::GetAddress(MemId id) const {
+void *SparseMemoryPool::GetAddress(MemId id) {
   if (id >= mem_size_) return nullptr;
   auto it = mems_.upper_bound(id);
   if (it == mems_.begin()) return nullptr;
