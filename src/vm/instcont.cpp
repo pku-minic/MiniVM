@@ -149,10 +149,6 @@ void VMInstContainer::PushLdReg(RegId reg_id) {
   PushInst(InstOp::LdReg, reg_id);
 }
 
-void VMInstContainer::PushLdAddr(std::string_view sym) {
-  PushInst(InstOp::LdAddr, GetSymbol(sym));
-}
-
 void VMInstContainer::PushLdFrame(VMOpr offset) {
   PushLdFrameAddr(offset);
   PushLoad();
@@ -160,7 +156,8 @@ void VMInstContainer::PushLdFrame(VMOpr offset) {
 
 void VMInstContainer::PushLdFrameAddr(VMOpr offset) {
   PushLoad(offset * 4);
-  PushLdAddr(kVMFrame);
+  PushLoad(kVMFrame);
+  PushOp(InstOp::Add);
 }
 
 void VMInstContainer::PushStore() {
@@ -312,8 +309,7 @@ void VMInstContainer::Dump(std::ostream &os) const {
     // NOTE: the order of 'case' statements is important
     switch (inst.op) {
       case InstOp::Var: case InstOp::Arr: case InstOp::LdVar:
-      case InstOp::LdAddr: case InstOp::StVar: case InstOp::StVarP:
-      case InstOp::CallExt: {
+      case InstOp::StVar: case InstOp::StVarP: case InstOp::CallExt: {
         // dump as 'sym'
         auto sym = sym_pool_.FindSymbol(inst.opr);
         assert(sym);
