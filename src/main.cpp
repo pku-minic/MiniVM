@@ -36,9 +36,9 @@ xstl::ArgParser GetArgp() {
 }
 
 void PrintVersion() {
-  cout << APP_NAME << " version " << APP_VERSION << endl;
+  cout << APP_NAME << " version " << APP_VERSION << endl << endl;
   cout << "MiniVM is a virtual machine for interpreting ";
-  cout << "Eeyore/Tigger IR, " << endl;
+  cout << "Eeyore/Tigger IR," << endl;
   cout << "which is designed for PKU compiler course.";
   cout << endl << endl;
   cout << "Copyright (C) 2010-2020 MaxXing. License GPLv3.";
