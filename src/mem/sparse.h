@@ -2,34 +2,32 @@
 #define MINIVM_MEM_SPARSE_H_
 
 #include <memory>
-#include <unordered_map>
 #include <map>
+#include <stack>
 #include <cstdint>
 
 #include "mem/pool.h"
 
 // sparse memory pool
-// naive implementation, cause id of allocated memory can not be reused
 // no boundary check for any accessing operation
-// NOTE: thread unsafe!
 class SparseMemoryPool : public MemoryPoolInterface {
  public:
-  SparseMemoryPool() {}
+  SparseMemoryPool() : mem_size_(0) {}
 
-  bool Allocate(SymId sym, std::uint32_t size) override;
-  std::optional<MemId> GetMemId(SymId sym) const override;
-  void *GetAddressBySym(SymId sym) const override;
-  void *GetAddressById(MemId id) const override;
+  MemId Allocate(std::uint32_t size) override;
+  void *GetAddress(MemId id) const override;
+  void SaveState() override;
+  void RestoreState() override;
 
  private:
   using BytesPtr = std::unique_ptr<std::uint8_t[]>;
 
-  // map of symbol id to memory id
-  std::unordered_map<SymId, MemId> ids_;
-  // all allocated memories
+  // all allocated memory
   std::map<MemId, BytesPtr> mems_;
-  // size of all allocated memories (shared)
-  static std::uint32_t mem_size_;
+  // size of all allocated memory
+  std::uint32_t mem_size_;
+  // stack of saved states
+  std::stack<std::uint32_t> states_;
 };
 
 #endif  // MINIVM_MEM_SPARSE_H_
