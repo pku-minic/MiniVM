@@ -9,7 +9,8 @@ The current version of MiniVM is implemented in C++ language, but in fact, there
 MiniVM is a stack-based virtual machine, which means most of the operands required by instructions come from the internal stack of the virtual machine. In details, MiniVM has the following built-in structures:
 
 * **Operand stack**: storing operands or parameters.
-* **Memory pool stack**: holding all dynamically allocated memory and return addresses for each active functions.
+* **Environment stack**: holding environments and return addresses for each active functions.
+* **Memory pool**: holding all dynamically allocated memory.
 * **Static registers**: storing some static data, designed to execute Tigger IR.
 * **Symbol pool**: holding all symbols, which can be variable names or external function names.
 * **Instruction container**: holding all instructions and debugging information.
@@ -59,15 +60,14 @@ Details as follows:
 
 | Opcode  | Operand   | Stack Operand     | Description                                 |
 | ---     | ---       | ---               | ---                                         |
-| Var     | `sym`     | N/A               | allocate memory for variable `sym`          |
+| Var     | `sym`     | N/A               | allocate a slot for variable `sym`          |
 | Arr     | `sym`     | size (in bytes)   | allocate memory for array `sym`             |
 | Ld      | N/A       | addr              | load 32-bit data from addr to stack         |
-| LdVar   | `sym`     | N/A               | load 32-bit data from `sym`'s addr to stack |
+| LdVar   | `sym`     | N/A               | load 32-bit data from `sym` to stack        |
 | LdReg   | `reg`     | N/A               | load 32-bit data from `reg` to stack        |
-| LdAddr  | `sym`     | offset (in bytes) | load address of `sym`+offset to stack       |
 | St      | N/A       | val, addr         | pop & store val to addr                     |
-| StVar   | `sym`     | val               | pop & store val to `sym`'s addr             |
-| StVarP  | `sym`     | val (preserved)   | preserve & store val to `sym`'s addr        |
+| StVar   | `sym`     | val               | pop & store val to `sym`                    |
+| StVarP  | `sym`     | val (preserved)   | preserve & store val to `sym`               |
 | StReg   | `reg`     | val               | pop & store val to `reg`                    |
 | StRegP  | `reg`     | val (preserved)   | preserve & store val to `reg`               |
 | Imm     | `imm`     | N/A               | load 24-bit `imm` to stack                  |
@@ -98,14 +98,14 @@ Details as follows:
 
 When executing a `Call`/`CallExt` instruction, MiniVM will:
 
-1. Create a new memory pool, and push it to the memory pool stack.
-2. Check the operand stack, if there are any values in it, pop them and add them to the memory pool, then assign symbol to it, such as `p0`, `p1`, etc.
+1. Create a new environment, and push it to the environment stack.
+2. Check the operand stack, if there are any values in it, pop them and add them to the environment, then assign symbol to it, such as `p0`, `p1`, etc.
 3. Jump to target pc address, or call the specific external function.
 
 On the contrast, when executing a `Ret` instruction, MiniVM will:
 
-* If the size of the memory pool stack is 1, it means that instructions are currently being executed in the global environment, just stop the execution.
-* Otherwise, pop a memory pool from the top of the stack and release it, and then jump to the return address.
+* If the size of the environment stack is 1, it means that instructions are currently being executed in the global environment, just stop the execution.
+* Otherwise, pop an environment from the top of the stack and release it, and then jump to the return address.
 
 So what about the details of external functions? We make the following conventions:
 
@@ -117,7 +117,7 @@ MiniVM can accept external functions in the following form:
 func externalFunc(vm_instance: MiniVM): Boolean
 ```
 
-Therefore, external functions can access the current memory pool and all static registers in MiniVM.
+Therefore, external functions can access the current environment and all static registers in MiniVM.
 
 If any error occurs during the external function call, the function should return `False`, otherwise it should return `True`.
 
@@ -125,14 +125,14 @@ If any error occurs during the external function call, the function should retur
 
 To be compatible with Eeyore and Tigger, MiniVM supports two methods for passing parameters:
 
-1. Store parameter #1, parameter #2... to function's memory pool with the symbol `p1`, `p2`..., or
+1. Store parameter #1, parameter #2... to function's environment with the symbol `p1`, `p2`..., or
 2. Store parameters to the specific static registers or an data block with symbol `$frame` in memory pool, depends on the target architecture of Tigger.
 
 MiniVM ***must ensure***:
 
 * Before the `Call`/`CallExt` instructions are executed, there is no value in the operand stack, except for function parameters.
-* When executing Eeyore generated instructions, there are no data blocks with symbol `$frame` in the current memory pool.
-* When executing Tigger generated instructions, there must be a data blocks with symbol `$frame` in the current memory pool, and, all `$frame`s should be placed consecutively in the same memory area.
+* When executing Eeyore generated instructions, there are no data blocks with symbol `$frame` in the current environment.
+* When executing Tigger generated instructions, there must be a data blocks with symbol `$frame` in the current environment, and, all `$frame`s should be placed consecutively in the same area of the memory pool.
 
 Considering the impact on performance, we strongly recommend that developers should create two versions of external functions for MiniVM running in Eeyore mode and Tigger mode.
 
@@ -149,7 +149,7 @@ Developer should make sure that the external function uses the correct method to
 
 MiniVM does not have a built-in debugger, but it supports the `Break` instruction. When this instruction is executed, MiniVM will try to find and call an external function called `$debugger`.
 
-Unlike the `Call`/`CallExt` instruction, there are no new memory pools will be created at this time. All internal states of MiniVM, such as the operand stack and the static registers, will be retained.
+Unlike the `Call`/`CallExt` instruction, there are no new environments will be created at this time. All internal states of MiniVM, such as the operand stack and the static registers, will be retained.
 
 When `$debugger` returns, MiniVM will check the return value. If it's `False`, the execution process will be interrupted.
 
