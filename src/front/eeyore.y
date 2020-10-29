@@ -72,7 +72,7 @@ static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
 }
 
 // all tokens
-%token EOL VAR IF GOTO PARAM CALL RETURN ADDROFOP END
+%token EOL VAR IF GOTO PARAM CALL RETURN END
 %token <str_val> LABEL FUNCTION SYMBOL
 %token <int_val> NUM
 %token <op_val> OP LOGICOP
@@ -149,12 +149,6 @@ Expression
     cont.PushOp(op);
     cont.PushStore($1);
   }
-  | SYMBOL '=' ADDROFOP SYMBOL {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLoad(0);
-    cont.PushLdAddr($4);
-    cont.PushStore($1);
-  }
   | SYMBOL '=' RightValue {
     cont.LogLineNum(@$.first_line);
     $3.GenerateLoad(cont);
@@ -164,13 +158,15 @@ Expression
     cont.LogLineNum(@$.first_line);
     $6.GenerateLoad(cont);
     $3.GenerateLoad(cont);
-    cont.PushLdAddr($1);
+    cont.PushLoad($1);
+    cont.PushOp(InstOp::Add);
     cont.PushStore();
   }
   | SYMBOL '=' SYMBOL '[' RightValue ']' {
     cont.LogLineNum(@$.first_line);
     $5.GenerateLoad(cont);
-    cont.PushLdAddr($3);
+    cont.PushLoad($3);
+    cont.PushOp(InstOp::Add);
     cont.PushLoad();
     cont.PushStore($1);
   }

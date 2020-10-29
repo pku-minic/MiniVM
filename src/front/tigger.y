@@ -64,9 +64,11 @@ Program
 GlobalVarDecl
   : VARIABLE '=' NUM {
     cont.LogLineNum(@$.first_line);
-    cont.PushVar($1);
+    cont.PushLoad(4);
+    cont.PushArr($1);
     cont.PushLoad($3);
-    cont.PushStore($1);
+    cont.PushLoad($1);
+    cont.PushStore();
   }
   | VARIABLE '=' MALLOC NUM {
     cont.LogLineNum(@$.first_line);
@@ -187,6 +189,7 @@ Expression
   | LOAD VARIABLE Reg {
     cont.LogLineNum(@$.first_line);
     cont.PushLoad($2);
+    cont.PushLoad();
     cont.PushStReg($3);
   }
   | LOADADDR NUM Reg {
@@ -196,8 +199,7 @@ Expression
   }
   | LOADADDR VARIABLE Reg {
     cont.LogLineNum(@$.first_line);
-    cont.PushLoad(0);
-    cont.PushLdAddr($2);
+    cont.PushLoad($2);
     cont.PushStReg($3);
   }
   ;

@@ -28,7 +28,6 @@ Num         -?[1-9][0-9]*|0
 Symbol      [Ttp][0-9]+
 Op          [\+\-\*\/\%\!]
 LogicOp     !=|==|>|<|>=|<=|\|\||&&
-AddrOfOp    &
 
 %%
 
@@ -54,7 +53,6 @@ AddrOfOp    &
 [\[\]:=]    { return yytext[0]; }
 {Op}        { eeyore_lval.op_val = GetOpVal(yytext); return OP; }
 {LogicOp}   { eeyore_lval.op_val = GetOpVal(yytext); return LOGICOP; }
-{AddrOfOp}  { return ADDROFOP; }
 
 %%
 
