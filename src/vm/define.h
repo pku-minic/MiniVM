@@ -6,24 +6,24 @@
 
 // all supported VM instructions
 // for more details, see src/vm/README.md
-#define VM_INSTS(e)                                                     \
-  /* memory allocation */                                               \
-  e(Var) e(Arr)                                                         \
-  /* load & store */                                                    \
-  e(Ld) e(LdVar) e(LdReg) e(LdAddr)                                     \
-  e(St) e(StVar) e(StVarP) e(StReg) e(StRegP) e(Imm) e(ImmHi)           \
-  /* control transfer (with absolute target address) */                 \
-  e(Bnz) e(Jmp)                                                         \
-  /* function call                                                      \
-     with absolute target address or symbol name (external function) */ \
-  e(Call) e(CallExt) e(Ret)                                             \
-  /* debugging */                                                       \
-  e(Break)                                                              \
-  /* logical operations */                                              \
-  e(LNot) e(LAnd) e(LOr)                                                \
-  /* comparisons */                                                     \
-  e(Eq) e(Ne) e(Gt) e(Lt) e(Ge) e(Le)                                   \
-  /* arithmetic operations */                                           \
+#define VM_INSTS(e)                                     \
+  /* memory allocation */                               \
+  e(Var) e(Arr)                                         \
+  /* load & store */                                    \
+  e(Ld) e(LdVar) e(LdReg) e(St) e(StVar) e(StVarP)      \
+  e(StReg) e(StRegP) e(Imm) e(ImmHi)                    \
+  /* control transfer (with absolute target address) */ \
+  e(Bnz) e(Jmp)                                         \
+  /* function call, with absolute target address        \
+     or symbol name (external function) */              \
+  e(Call) e(CallExt) e(Ret)                             \
+  /* debugging */                                       \
+  e(Break)                                              \
+  /* logical operations */                              \
+  e(LNot) e(LAnd) e(LOr)                                \
+  /* comparisons */                                     \
+  e(Eq) e(Ne) e(Gt) e(Lt) e(Ge) e(Le)                   \
+  /* arithmetic operations */                           \
   e(Neg) e(Add) e(Sub) e(Mul) e(Div) e(Mod)
 // expand macro to comma-separated list
 #define VM_EXPAND_LIST(i)         i,
