@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.13)
 project(MiniVM VERSION "0.0.1")
 
+# set CMake module path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 # # set compiler path
 # set(CMAKE_C_COMPILER "/usr/local/opt/gcc/bin/gcc-10")
 # set(CMAKE_CXX_COMPILER "/usr/local/opt/gcc/bin/g++-10")
@@ -43,6 +47,9 @@ endif()
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
+# find Readline
+find_package(Readline)
+
 # generate lexer/parser of Eeyore
 flex_target(EeyoreLexer src/front/eeyore.l
             ${CMAKE_CURRENT_BINARY_DIR}/eeyore.lexer.cpp
@@ -65,6 +72,7 @@ add_flex_bison_dependency(TiggerLexer TiggerParser)
 include_directories(src)
 include_directories(3rdparty/xstl)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${Readline_INCLUDE_DIR})
 
 # all of C++ source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -75,3 +83,4 @@ set(SOURCES ${SOURCES} ${FLEX_TiggerLexer_OUTPUTS}
 
 # executable
 add_executable(minivm ${SOURCES})
+target_link_libraries(minivm ${Readline_LIBRARY})
