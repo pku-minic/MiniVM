@@ -23,7 +23,7 @@ VMOpr VM::PopValue() {
   return ret;
 }
 
-VMOpr *VM::GetAddrById(MemId id) {
+VMOpr *VM::GetAddrById(MemId id) const {
   // find in memory pool
   auto ptr = mem_pool_->GetAddress(id);
   if (!ptr) {
@@ -33,14 +33,14 @@ VMOpr *VM::GetAddrById(MemId id) {
   return reinterpret_cast<VMOpr *>(ptr);
 }
 
-VMOpr *VM::GetAddrBySym(SymId sym) {
+VMOpr *VM::GetAddrBySym(SymId sym) const {
   // find in current environment
-  auto &env = envs_.top().first;
-  auto it = env.find(sym);
-  if (it == env.end()) {
+  const auto &env = envs_.top().first;
+  auto it = env->find(sym);
+  if (it == env->end()) {
     // find in global environment
     it = global_env_->find(sym);
-    if (it == env.end()) {
+    if (it == global_env_->end()) {
       LogError("symbol not found");
       return nullptr;
     }
@@ -48,18 +48,22 @@ VMOpr *VM::GetAddrBySym(SymId sym) {
   return &it->second;
 }
 
+VM::EnvPtr VM::MakeEnv() {
+  return std::make_shared<Environment>();
+}
+
 void VM::InitFuncCall() {
   // save the state of memory pool
   mem_pool_->SaveState();
   // add a new environment & return address to stack
-  envs_.push({{}, pc_ + 1});
+  envs_.push({MakeEnv(), pc_ + 1});
   auto &env = envs_.top().first;
   // push parameters
   while (!oprs_.empty()) {
     // get symbol id of parameter
     auto sym = sym_pool_.LogId("p" + std::to_string(oprs_.size() - 1));
     // write value
-    auto ret = env.insert({sym, PopValue()}).second;
+    auto ret = env->insert({sym, PopValue()}).second;
     static_cast<void>(ret);
     assert(ret);
   }
@@ -74,8 +78,8 @@ std::optional<VMOpr> VM::GetParamFromCurPool(std::size_t param_id) const {
   auto sym = sym_pool_.FindId("p" + std::to_string(param_id));
   if (!sym) return {};
   const auto &env = envs_.top().first;
-  auto it = env.find(*sym);
-  if (it == env.end()) return {};
+  auto it = env->find(*sym);
+  if (it == env->end()) return {};
   return it->second;
 }
 
@@ -86,8 +90,8 @@ void VM::Reset() {
   while (!oprs_.empty()) oprs_.pop();
   while (!envs_.empty()) envs_.pop();
   // make a new environment for global environment
-  envs_.push({{}, 0});
-  global_env_ = &envs_.top().first;
+  envs_.push({MakeEnv(), 0});
+  global_env_ = envs_.top().first;
   // save current state of memory pool
   mem_pool_->SaveState();
   // clear all static registers
@@ -108,7 +112,7 @@ std::optional<VMOpr> VM::Run() {
 
   // allocate memory for variable
   VM_LABEL(Var) {
-    auto ret = envs_.top().first.insert({inst->opr, 0}).second;
+    auto ret = envs_.top().first->insert({inst->opr, 0}).second;
     static_cast<void>(ret);
     assert(ret);
     VM_NEXT(1);
@@ -119,7 +123,7 @@ std::optional<VMOpr> VM::Run() {
     // allocate a new memory
     auto id = mem_pool_->Allocate(PopValue());
     // add to environment
-    auto ret = envs_.top().first.insert({inst->opr, id}).second;
+    auto ret = envs_.top().first->insert({inst->opr, id}).second;
     static_cast<void>(ret);
     assert(ret);
     VM_NEXT(1);

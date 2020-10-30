@@ -2,11 +2,12 @@
 #define MINIVM_VM_VM_H_
 
 #include <unordered_map>
+#include <memory>
+#include <utility>
 #include <functional>
 #include <string_view>
 #include <optional>
 #include <stack>
-#include <utility>
 #include <vector>
 #include <cstddef>
 
@@ -20,8 +21,9 @@ class VM {
  public:
   // environment
   using Environment = std::unordered_map<SymId, VMOpr>;
+  using EnvPtr = std::shared_ptr<Environment>;
   // pair of environment and function return address
-  using EnvAddrPair = std::pair<Environment, VMAddr>;
+  using EnvAddrPair = std::pair<EnvPtr, VMAddr>;
   // static registers
   // external functions
   using ExtFunc = std::function<bool(VM &)>;
@@ -71,9 +73,11 @@ class VM {
   // pop value from stack and return it
   VMOpr PopValue();
   // get address of memory by id
-  VMOpr *GetAddrById(MemId id);
+  VMOpr *GetAddrById(MemId id) const;
   // get address of memory by symbol
-  VMOpr *GetAddrBySym(SymId sym);
+  VMOpr *GetAddrBySym(SymId sym) const;
+  // make a new environment
+  EnvPtr MakeEnv();
   // perform initialization before function call
   void InitFuncCall();
 
@@ -90,7 +94,7 @@ class VM {
   // environment stack
   std::stack<EnvAddrPair> envs_;
   // global environment
-  Environment *global_env_;
+  EnvPtr global_env_;
   // static registers
   std::vector<VMOpr> regs_;
   // id of return value register
