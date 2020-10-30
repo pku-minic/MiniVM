@@ -107,13 +107,13 @@ std::optional<VMOpr> VM::Run() {
 #define VM_NEXT(pc_ofs)                            \
   do {                                             \
     pc_ += pc_ofs;                                 \
-    inst = cont_.insts().data() + pc_;             \
+    inst = cont_.GetInst(pc_);                     \
     goto *kInstLabels[static_cast<int>(inst->op)]; \
   } while (0)
 
   const void *kInstLabels[] = {VM_INSTS(VM_EXPAND_LABEL_LIST)};
-  const VMInst *inst = cont_.insts().data();
-  goto *kInstLabels[static_cast<int>(inst->op)];
+  const VMInst *inst;
+  VM_NEXT(0);
 
   // allocate memory for variable
   VM_LABEL(Var) {
@@ -291,7 +291,7 @@ std::optional<VMOpr> VM::Run() {
         if (!it->second(*this)) return 0;
       }
     }
-    VM_NEXT(1);
+    VM_NEXT(-1);
   }
 
   // logical negation
