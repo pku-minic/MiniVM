@@ -2,6 +2,7 @@
 #define MINIVM_MEM_SPARSE_H_
 
 #include <memory>
+#include <functional>
 #include <map>
 #include <stack>
 #include <cstdint>
@@ -23,7 +24,7 @@ class SparseMemoryPool : public MemoryPoolInterface {
   using BytesPtr = std::unique_ptr<std::uint8_t[]>;
 
   // all allocated memory
-  std::map<MemId, BytesPtr> mems_;
+  std::map<MemId, BytesPtr, std::greater<MemId>> mems_;
   // size of all allocated memory
   std::uint32_t mem_size_;
   // stack of saved states
