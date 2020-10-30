@@ -23,6 +23,11 @@ VMOpr VM::PopValue() {
   return ret;
 }
 
+VMOpr &VM::GetOpr() {
+  assert(!oprs_.empty());
+  return oprs_.top();
+}
+
 VMOpr *VM::GetAddrById(MemId id) const {
   // find in memory pool
   auto ptr = mem_pool_->GetAddress(id);
@@ -182,7 +187,7 @@ std::optional<VMOpr> VM::Run() {
     auto ptr = GetAddrBySym(inst->opr);
     if (!ptr) return {};
     // write value
-    *ptr = oprs_.top();
+    *ptr = GetOpr();
     VM_NEXT(1);
   }
 
@@ -196,7 +201,7 @@ std::optional<VMOpr> VM::Run() {
   // store static register and preserve
   VM_LABEL(StRegP) {
     assert(inst->opr < regs_.size());
-    regs_[inst->opr] = oprs_.top();
+    regs_[inst->opr] = GetOpr();
     VM_NEXT(1);
   }
 
@@ -214,18 +219,14 @@ std::optional<VMOpr> VM::Run() {
   VM_LABEL(ImmHi) {
     constexpr auto kMaskLo = (1u << kVMInstImmLen) - 1;
     constexpr auto kMaskHi = (1u << (32 - kVMInstImmLen)) - 1;
-    oprs_.top() &= kMaskLo;
-    oprs_.top() |= (inst->opr & kMaskHi) << kVMInstImmLen;
+    GetOpr() &= kMaskLo;
+    GetOpr() |= (inst->opr & kMaskHi) << kVMInstImmLen;
     VM_NEXT(1);
   }
 
   // branch if not zero
   VM_LABEL(Bnz) {
-    // get condition
-    auto cond = oprs_.top();
-    oprs_.pop();
-    // check & jump
-    if (cond) {
+    if (PopValue()) {
       pc_ = inst->opr;
       VM_NEXT(0);
     }
@@ -295,104 +296,104 @@ std::optional<VMOpr> VM::Run() {
 
   // logical negation
   VM_LABEL(LNot) {
-    oprs_.top() = !oprs_.top();
+    GetOpr() = !GetOpr();
     VM_NEXT(1);
   }
 
   // logical AND
   VM_LABEL(LAnd) {
     auto rhs = PopValue();
-    oprs_.top() = oprs_.top() && rhs;
+    GetOpr() = GetOpr() && rhs;
     VM_NEXT(1);
   }
 
   // logical OR
   VM_LABEL(LOr) {
     auto rhs = PopValue();
-    oprs_.top() = oprs_.top() || rhs;
+    GetOpr() = GetOpr() || rhs;
     VM_NEXT(1);
   }
 
   // set if equal
   VM_LABEL(Eq) {
     auto rhs = PopValue();
-    oprs_.top() = oprs_.top() == rhs;
+    GetOpr() = GetOpr() == rhs;
     VM_NEXT(1);
   }
 
   // set if not equal
   VM_LABEL(Ne) {
     auto rhs = PopValue();
-    oprs_.top() = oprs_.top() != rhs;
+    GetOpr() = GetOpr() != rhs;
     VM_NEXT(1);
   }
 
   // set if greater than
   VM_LABEL(Gt) {
     auto rhs = PopValue();
-    oprs_.top() = oprs_.top() > rhs;
+    GetOpr() = GetOpr() > rhs;
     VM_NEXT(1);
   }
 
   // set if less than
   VM_LABEL(Lt) {
     auto rhs = PopValue();
-    oprs_.top() = oprs_.top() < rhs;
+    GetOpr() = GetOpr() < rhs;
     VM_NEXT(1);
   }
 
   // set if greater than or equal
   VM_LABEL(Ge) {
     auto rhs = PopValue();
-    oprs_.top() = oprs_.top() >= rhs;
+    GetOpr() = GetOpr() >= rhs;
     VM_NEXT(1);
   }
 
   // set if less than or equal
   VM_LABEL(Le) {
     auto rhs = PopValue();
-    oprs_.top() = oprs_.top() <= rhs;
+    GetOpr() = GetOpr() <= rhs;
     VM_NEXT(1);
   }
 
   // negation
   VM_LABEL(Neg) {
-    oprs_.top() = -oprs_.top();
+    GetOpr() = -GetOpr();
     VM_NEXT(1);
   }
 
   // addition
   VM_LABEL(Add) {
     auto rhs = PopValue();
-    oprs_.top() += rhs;
+    GetOpr() += rhs;
     VM_NEXT(1);
   }
 
   // subtraction
   VM_LABEL(Sub) {
     auto rhs = PopValue();
-    oprs_.top() -= rhs;
+    GetOpr() -= rhs;
     VM_NEXT(1);
   }
 
   // multiplication
   VM_LABEL(Mul) {
     auto rhs = PopValue();
-    oprs_.top() *= rhs;
+    GetOpr() *= rhs;
     VM_NEXT(1);
   }
 
   // division
   VM_LABEL(Div) {
     auto rhs = PopValue();
-    oprs_.top() /= rhs;
+    GetOpr() /= rhs;
     VM_NEXT(1);
   }
 
   // modulo operation
   VM_LABEL(Mod) {
     auto rhs = PopValue();
-    oprs_.top() %= rhs;
+    GetOpr() %= rhs;
     VM_NEXT(1);
   }
 

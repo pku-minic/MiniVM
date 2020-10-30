@@ -72,6 +72,8 @@ class VM {
   void LogError(std::string_view message) const;
   // pop value from stack and return it
   VMOpr PopValue();
+  // get reference of the top of stack
+  VMOpr &GetOpr();
   // get address of memory by id
   VMOpr *GetAddrById(MemId id) const;
   // get address of memory by symbol
