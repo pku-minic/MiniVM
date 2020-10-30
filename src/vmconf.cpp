@@ -49,7 +49,9 @@ static struct TimerGuard {
   ~TimerGuard() {
     if (!timer_id) return;
     auto us = total_time.count();
+    std::cerr << "TOTAL: ";
     PrintTime(us);
+    std::cerr << std::endl;
   }
 
   static void PrintTime(std::uint64_t us) {
