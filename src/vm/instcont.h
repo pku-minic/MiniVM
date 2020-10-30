@@ -22,7 +22,7 @@ class VMInstContainer {
     Reset();
   }
 
-  // reset internal state
+  // reset internal states
   void Reset();
 
   // instruction generators

@@ -15,7 +15,7 @@ class SymbolPool {
  public:
   SymbolPool() {}
 
-  // reset internal state
+  // reset internal states
   void Reset();
 
   // query & get id of the specific symbol

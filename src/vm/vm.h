@@ -36,7 +36,7 @@ class VM {
   // read the value of the parameter in current memory pool
   std::optional<VMOpr> GetParamFromCurPool(std::size_t param_id) const;
 
-  // reset internal state
+  // reset internal states
   void Reset();
   // run VM, 'Reset' method must be called before
   // returns top of stack (success) or 'nullopt' (failed)
