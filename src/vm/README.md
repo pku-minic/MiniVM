@@ -151,7 +151,7 @@ MiniVM does not have a built-in debugger, but it supports the `Break` instructio
 
 Unlike the `Call`/`CallExt` instruction, there are no new environments will be created at this time. All internal states of MiniVM, such as the operand stack and the static registers, will be retained.
 
-When `$debugger` returns, MiniVM will check the return value. If it's `False`, the execution process will be interrupted.
+When `$debugger` returns, MiniVM will check the return value. If it's `False`, the execution process will be interrupted. Otherwise, MiniVM will ***re-execute*** the current instruction.
 
 ## Gopher Bytecode File Format
 
