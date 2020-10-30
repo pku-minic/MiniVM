@@ -11,6 +11,9 @@ namespace {
 // string of all opcodes
 const char *kInstOpStr[] = {VM_INSTS(VM_EXPAND_STR_ARRAY)};
 
+// a 'Break' instruction
+const VMInst kBreakInst = {InstOp::Break};
+
 }  // namespace
 
 void VMInstContainer::PushInst(InstOp op) {
@@ -72,6 +75,8 @@ void VMInstContainer::Reset() {
   label_defs_.clear();
   insts_.clear();
   global_insts_.clear();
+  breakpoints_.clear();
+  trap_mode_ = false;
   // insert jump instruction to entry point
   cur_env_ = &local_env_;
   LogRelatedInsts(kVMEntry);
@@ -302,6 +307,21 @@ void VMInstContainer::SealContainer() {
   local_env_.clear();
 }
 
+void VMInstContainer::ToggleBreakpoint(VMAddr pc, bool enable) {
+  if (enable) {
+    // set breakpoint
+    breakpoints_[pc] = insts_[pc].op;
+    insts_[pc].op = InstOp::Break;
+  }
+  else {
+    // remove breakpoint
+    auto it = breakpoints_.find(pc);
+    assert(it != breakpoints_.end());
+    insts_[pc].op = it->second;
+    breakpoints_.erase(it);
+  }
+}
+
 void VMInstContainer::Dump(std::ostream &os) const {
   for (VMAddr pc = 0; pc < insts_.size(); ++pc) {
     const auto &inst = insts_[pc];
@@ -349,4 +369,8 @@ std::optional<std::uint32_t> VMInstContainer::FindLineNum(
   auto it = pc_defs_.lower_bound(pc);
   if (it == pc_defs_.end()) return {};
   return it->second;
+}
+
+const VMInst *VMInstContainer::GetInst(VMAddr pc) const {
+  return trap_mode_ ? &kBreakInst : insts_.data() + pc;
 }

@@ -18,16 +18,13 @@
 // container for storing VM instructions
 class VMInstContainer {
  public:
-  VMInstContainer(SymbolPool &sym_pool)
-      : sym_pool_(sym_pool), has_error_(false), cur_env_(&global_env_) {
-    Reset();
-  }
+  VMInstContainer(SymbolPool &sym_pool) : sym_pool_(sym_pool) { Reset(); }
 
   // reset internal states
   void Reset();
 
-  // instruction generators
-  // exit if any error occurred
+  // instruction generators, for frontends
+  //
   void PushVar(std::string_view sym);
   void PushArr(std::string_view sym);
   void PushLabel(std::string_view label);
@@ -46,6 +43,8 @@ class VMInstContainer {
   void PushCall(std::string_view label);
   void PushOp(InstOp op);
 
+  // instruction metadata logger, for frontends
+  //
   // print error message to stderr
   void LogError(std::string_view message);
   void LogError(std::string_view message, std::string_view sym);
@@ -61,9 +60,17 @@ class VMInstContainer {
   // exit function environment
   void ExitFunc();
   // perform label backfilling, and seal current container
-  // exit if any errors occur
+  // exit if any error occurred
   void SealContainer();
 
+  // debug information queryer, for debuggers
+  //
+  // enable/disable the breakpoint on the specific pc address
+  void ToggleBreakpoint(VMAddr pc, bool enable);
+  // enable/disable trap mode
+  // in trap mode, when MiniVM tries to fetch instructions from
+  // the container, a 'Break' instruction will always be returned
+  void ToggleTrapMode(bool enable) { trap_mode_ = enable; }
   // dump all stored instructions
   void Dump(std::ostream &os) const;
   // query pc by line number
@@ -73,8 +80,10 @@ class VMInstContainer {
   // query line number by pc
   std::optional<std::uint32_t> FindLineNum(VMAddr pc) const;
 
-  // getters
-  const std::vector<VMInst> &insts() const { return insts_; }
+  // instruction fetcher, for MiniVM instances
+  //
+  // get pointer of the specific instruction
+  const VMInst *GetInst(VMAddr pc) const;
 
  private:
   struct BackfillInfo {
@@ -118,6 +127,10 @@ class VMInstContainer {
   std::string_view last_label_;
   // all instructions
   std::vector<VMInst> insts_, global_insts_;
+  // all breakpoints
+  std::unordered_map<VMAddr, InstOp> breakpoints_;
+  // whether the container is in trap mode
+  bool trap_mode_;
 };
 
 #endif  // MINIVM_VM_INSTCONT_H_
