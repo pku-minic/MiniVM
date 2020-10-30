@@ -4,8 +4,9 @@
 
 MemId DenseMemoryPool::Allocate(std::uint32_t size) {
   // allocate memory
+  auto id = mems_.size();
   mems_.resize(mems_.size() + size);
-  return true;
+  return id;
 }
 
 void *DenseMemoryPool::GetAddress(MemId id) {
