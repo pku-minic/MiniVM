@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <string>
+#include <functional>
 #include <map>
 #include <cstdint>
 
@@ -110,7 +111,7 @@ class VMInstContainer {
   // line number corresponding to pc addresses (for debugging)
   std::unordered_map<std::uint32_t, VMAddr> line_defs_;
   // line number of pc addresses (for debugging)
-  std::map<VMAddr, std::uint32_t> pc_defs_;
+  std::map<VMAddr, std::uint32_t, std::greater<VMAddr>> pc_defs_;
   // pc address of labels (for debugging & backfilling)
   std::unordered_map<std::string, BackfillInfo> label_defs_;
   // last defined label
