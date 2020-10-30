@@ -8,6 +8,7 @@ Before building MiniVM, please make sure you have installed the following depend
 
 * `cmake` 3.5 or later
 * C++ compiler supporting C++17
+* `readline`
 
 Then you can build this repository by executing the following command lines:
 
