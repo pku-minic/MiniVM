@@ -16,11 +16,19 @@
 #include "vm/instcont.h"
 #include "front/token.h"
 
+// some magic, in order to be compatible with the new version
+// and the old version of Bison, since the newer version of
+// Bison will put the declaration of 'yyparse' function to
+// the generated header, but we can not include VM related
+// definitions in the header, because the older version does
+// not support '%code requires'.
+#define CONT()  (*reinterpret_cast<VMInstContainer *>(cont))
+
 // lexer
 int yylex();
 
 // error logger
-void yyerror(VMInstContainer &cont, const char *message);
+void yyerror(void *cont, const char *message);
 
 // convert binary 'TokenOp' to 'InstOp'
 static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
@@ -31,7 +39,7 @@ static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
 %locations
 
 // parameter of 'yyparse' function
-%parse-param { VMInstContainer &cont }
+%parse-param { void *cont }
 
 // actual value of token/non-terminals
 %union {
@@ -92,13 +100,13 @@ Program
 
 Declaration
   : VAR SYMBOL {
-    cont.LogLineNum(@$.first_line);
-    cont.PushVar($2);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushVar($2);
   }
   | VAR NUM SYMBOL {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLoad($2);
-    cont.PushArr($3);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLoad($2);
+    CONT().PushArr($3);
   }
   ;
 
@@ -108,9 +116,9 @@ FunctionDef
 
 FunctionHeader
   : FUNCTION '[' NUM ']' {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLabel($1);
-    cont.EnterFunc($3);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLabel($1);
+    CONT().EnterFunc($3);
   }
   ;
 
@@ -120,7 +128,7 @@ Statements
   ;
 
 FunctionEnd
-  : END FUNCTION { cont.ExitFunc(); }
+  : END FUNCTION { CONT().ExitFunc(); }
   ;
 
 Statement
@@ -131,78 +139,78 @@ Statement
 
 Expression
   : SYMBOL '=' RightValue BinOp RightValue {
-    cont.LogLineNum(@$.first_line);
-    $3.GenerateLoad(cont);
-    $5.GenerateLoad(cont);
-    cont.PushOp(GetBinaryOp(cont, $4));
-    cont.PushStore($1);
+    CONT().LogLineNum(@$.first_line);
+    $3.GenerateLoad(CONT());
+    $5.GenerateLoad(CONT());
+    CONT().PushOp(GetBinaryOp(CONT(), $4));
+    CONT().PushStore($1);
   }
   | SYMBOL '=' OP RightValue {
-    cont.LogLineNum(@$.first_line);
-    $4.GenerateLoad(cont);
+    CONT().LogLineNum(@$.first_line);
+    $4.GenerateLoad(CONT());
     auto op = InstOp::Add;
     switch ($3) {
       case TokenOp::Sub: op = InstOp::Neg; break;
       case TokenOp::Not: op = InstOp::LAnd; break;
-      default: cont.LogError("invalid unary operator"); break;
+      default: CONT().LogError("invalid unary operator"); break;
     }
-    cont.PushOp(op);
-    cont.PushStore($1);
+    CONT().PushOp(op);
+    CONT().PushStore($1);
   }
   | SYMBOL '=' RightValue {
-    cont.LogLineNum(@$.first_line);
-    $3.GenerateLoad(cont);
-    cont.PushStore($1);
+    CONT().LogLineNum(@$.first_line);
+    $3.GenerateLoad(CONT());
+    CONT().PushStore($1);
   }
   | SYMBOL '[' RightValue ']' '=' RightValue {
-    cont.LogLineNum(@$.first_line);
-    $6.GenerateLoad(cont);
-    $3.GenerateLoad(cont);
-    cont.PushLoad($1);
-    cont.PushOp(InstOp::Add);
-    cont.PushStore();
+    CONT().LogLineNum(@$.first_line);
+    $6.GenerateLoad(CONT());
+    $3.GenerateLoad(CONT());
+    CONT().PushLoad($1);
+    CONT().PushOp(InstOp::Add);
+    CONT().PushStore();
   }
   | SYMBOL '=' SYMBOL '[' RightValue ']' {
-    cont.LogLineNum(@$.first_line);
-    $5.GenerateLoad(cont);
-    cont.PushLoad($3);
-    cont.PushOp(InstOp::Add);
-    cont.PushLoad();
-    cont.PushStore($1);
+    CONT().LogLineNum(@$.first_line);
+    $5.GenerateLoad(CONT());
+    CONT().PushLoad($3);
+    CONT().PushOp(InstOp::Add);
+    CONT().PushLoad();
+    CONT().PushStore($1);
   }
   | IF RightValue LOGICOP RightValue GOTO LABEL {
-    cont.LogLineNum(@$.first_line);
-    $2.GenerateLoad(cont);
-    $4.GenerateLoad(cont);
-    cont.PushOp(GetBinaryOp(cont, $3));
-    cont.PushBnz($6);
+    CONT().LogLineNum(@$.first_line);
+    $2.GenerateLoad(CONT());
+    $4.GenerateLoad(CONT());
+    CONT().PushOp(GetBinaryOp(CONT(), $3));
+    CONT().PushBnz($6);
   }
   | GOTO LABEL {
-    cont.LogLineNum(@$.first_line);
-    cont.PushJump($2);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushJump($2);
   }
-  | LABEL ':' { cont.PushLabel($1); }
+  | LABEL ':' { CONT().PushLabel($1); }
   | PARAM RightValue {
-    cont.LogLineNum(@$.first_line);
-    $2.GenerateLoad(cont);
+    CONT().LogLineNum(@$.first_line);
+    $2.GenerateLoad(CONT());
   }
   | CALL FUNCTION {
-    cont.LogLineNum(@$.first_line);
-    cont.PushCall($2);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushCall($2);
   }
   | SYMBOL '=' CALL FUNCTION {
-    cont.LogLineNum(@$.first_line);
-    cont.PushCall($4);
-    cont.PushStore($1);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushCall($4);
+    CONT().PushStore($1);
   }
   | RETURN RightValue {
-    cont.LogLineNum(@$.first_line);
-    $2.GenerateLoad(cont);
-    cont.PushOp(InstOp::Ret);
+    CONT().LogLineNum(@$.first_line);
+    $2.GenerateLoad(CONT());
+    CONT().PushOp(InstOp::Ret);
   }
   | RETURN {
-    cont.LogLineNum(@$.first_line);
-    cont.PushOp(InstOp::Ret);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushOp(InstOp::Ret);
   }
   ;
 
@@ -218,8 +226,8 @@ BinOp
 
 %%
 
-void yyerror(VMInstContainer &cont, const char *message) {
-  cont.LogError(message);
+void yyerror(void *cont, const char *message) {
+  CONT().LogError(message);
 }
 
 static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op) {

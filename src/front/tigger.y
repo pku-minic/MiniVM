@@ -16,11 +16,19 @@
 #include "vm/instcont.h"
 #include "front/token.h"
 
+// some magic, in order to be compatible with the new version
+// and the old version of Bison, since the newer version of
+// Bison will put the declaration of 'yyparse' function to
+// the generated header, but we can not include VM related
+// definitions in the header, because the older version does
+// not support '%code requires'.
+#define CONT()  (*reinterpret_cast<VMInstContainer *>(cont))
+
 // lexer
 int yylex();
 
 // error logger
-void yyerror(VMInstContainer &cont, const char *message);
+void yyerror(void *cont, const char *message);
 
 // convert binary 'TokenOp' to 'InstOp'
 static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
@@ -31,7 +39,7 @@ static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
 %locations
 
 // parameter of 'yyparse' function
-%parse-param { VMInstContainer &cont }
+%parse-param { void *cont }
 
 // actual value of token/non-terminals
 %union {
@@ -63,17 +71,17 @@ Program
 
 GlobalVarDecl
   : VARIABLE '=' NUM {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLoad(4);
-    cont.PushArr($1);
-    cont.PushLoad($3);
-    cont.PushLoad($1);
-    cont.PushStore();
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLoad(4);
+    CONT().PushArr($1);
+    CONT().PushLoad($3);
+    CONT().PushLoad($1);
+    CONT().PushStore();
   }
   | VARIABLE '=' MALLOC NUM {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLoad($4);
-    cont.PushArr($1);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLoad($4);
+    CONT().PushArr($1);
   }
   ;
 
@@ -83,9 +91,9 @@ FunctionDef
 
 FunctionHeader
   : FUNCTION '[' NUM ']' '[' NUM ']' {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLabel($1);
-    cont.EnterFunc($3, $6);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLabel($1);
+    CONT().EnterFunc($3, $6);
   }
   ;
 
@@ -95,7 +103,7 @@ Expressions
   ;
 
 FunctionEnd
-  : END FUNCTION { cont.ExitFunc(); }
+  : END FUNCTION { CONT().ExitFunc(); }
   ;
 
 FullExpression
@@ -105,102 +113,102 @@ FullExpression
 
 Expression
   : Reg '=' Reg BinOp Reg {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLdReg($3);
-    cont.PushLdReg($5);
-    cont.PushOp(GetBinaryOp(cont, $4));
-    cont.PushStReg($1);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLdReg($3);
+    CONT().PushLdReg($5);
+    CONT().PushOp(GetBinaryOp(CONT(), $4));
+    CONT().PushStReg($1);
   }
   | Reg '=' Reg BinOp NUM {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLdReg($3);
-    cont.PushLoad($5);
-    cont.PushOp(GetBinaryOp(cont, $4));
-    cont.PushStReg($1);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLdReg($3);
+    CONT().PushLoad($5);
+    CONT().PushOp(GetBinaryOp(CONT(), $4));
+    CONT().PushStReg($1);
   }
   | Reg '=' OP Reg {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLdReg($4);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLdReg($4);
     auto op = InstOp::Add;
     switch ($3) {
       case TokenOp::Sub: op = InstOp::Neg; break;
       case TokenOp::Not: op = InstOp::LAnd; break;
-      default: cont.LogError("invalid unary operator"); break;
+      default: CONT().LogError("invalid unary operator"); break;
     }
-    cont.PushOp(op);
-    cont.PushStReg($1);
+    CONT().PushOp(op);
+    CONT().PushStReg($1);
   }
   | Reg '=' Reg {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLdReg($3);
-    cont.PushStReg($1);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLdReg($3);
+    CONT().PushStReg($1);
   }
   | Reg '=' NUM {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLoad($3);
-    cont.PushStReg($1);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLoad($3);
+    CONT().PushStReg($1);
   }
   | Reg '[' NUM ']' '=' Reg {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLdReg($6);
-    cont.PushLdReg($1);
-    cont.PushLoad($3);
-    cont.PushOp(InstOp::Add);
-    cont.PushStore();
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLdReg($6);
+    CONT().PushLdReg($1);
+    CONT().PushLoad($3);
+    CONT().PushOp(InstOp::Add);
+    CONT().PushStore();
   }
   | Reg '=' Reg '[' NUM ']' {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLdReg($3);
-    cont.PushLoad($5);
-    cont.PushOp(InstOp::Add);
-    cont.PushLoad();
-    cont.PushStReg($1);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLdReg($3);
+    CONT().PushLoad($5);
+    CONT().PushOp(InstOp::Add);
+    CONT().PushLoad();
+    CONT().PushStReg($1);
   }
   | IF Reg LOGICOP Reg GOTO LABEL {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLdReg($2);
-    cont.PushLdReg($4);
-    cont.PushOp(GetBinaryOp(cont, $3));
-    cont.PushBnz($6);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLdReg($2);
+    CONT().PushLdReg($4);
+    CONT().PushOp(GetBinaryOp(CONT(), $3));
+    CONT().PushBnz($6);
   }
   | GOTO LABEL {
-    cont.LogLineNum(@$.first_line);
-    cont.PushJump($2);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushJump($2);
   }
-  | LABEL ':' { cont.PushLabel($1); }
+  | LABEL ':' { CONT().PushLabel($1); }
   | CALL FUNCTION {
-    cont.LogLineNum(@$.first_line);
-    cont.PushCall($2);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushCall($2);
   }
   | RETURN {
-    cont.LogLineNum(@$.first_line);
-    cont.PushOp(InstOp::Ret);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushOp(InstOp::Ret);
   }
   | STORE Reg NUM {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLdReg($2);
-    cont.PushStFrame($3);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLdReg($2);
+    CONT().PushStFrame($3);
   }
   | LOAD NUM Reg {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLdFrame($2);
-    cont.PushStReg($3);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLdFrame($2);
+    CONT().PushStReg($3);
   }
   | LOAD VARIABLE Reg {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLoad($2);
-    cont.PushLoad();
-    cont.PushStReg($3);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLoad($2);
+    CONT().PushLoad();
+    CONT().PushStReg($3);
   }
   | LOADADDR NUM Reg {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLdFrameAddr($2);
-    cont.PushStReg($3);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLdFrameAddr($2);
+    CONT().PushStReg($3);
   }
   | LOADADDR VARIABLE Reg {
-    cont.LogLineNum(@$.first_line);
-    cont.PushLoad($2);
-    cont.PushStReg($3);
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLoad($2);
+    CONT().PushStReg($3);
   }
   ;
 
@@ -215,8 +223,8 @@ Reg
 
 %%
 
-void yyerror(VMInstContainer &cont, const char *message) {
-  cont.LogError(message);
+void yyerror(void *cont, const char *message) {
+  CONT().LogError(message);
 }
 
 static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op) {
