@@ -44,14 +44,12 @@ constexpr std::size_t kVMInstOpLen = 8;
 constexpr std::size_t kVMInstImmLen = kVMInstLen - kVMInstOpLen;
 
 // opcode of VM instructions
-// NOTE:  length up to 'kVMInstOpLen' bit,
-//        although it's declared as 'std::uint32_t'
-enum class InstOp : std::uint32_t { VM_INSTS(VM_EXPAND_LIST) };
+enum class InstOp { VM_INSTS(VM_EXPAND_LIST) };
 
 // VM instruction (packed, 'kVMInstLen' bits long)
 struct VMInst {
   // opcode
-  InstOp op : kVMInstOpLen;
+  std::uint32_t op : kVMInstOpLen;
   // symbol reference/immediate/absolute target address
   std::uint32_t opr : kVMInstImmLen;
 };
