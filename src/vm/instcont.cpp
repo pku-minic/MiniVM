@@ -12,7 +12,7 @@ namespace {
 const char *kInstOpStr[] = {VM_INSTS(VM_EXPAND_STR_ARRAY)};
 
 // a 'Break' instruction
-const VMInst kBreakInst = {InstOp::Break};
+const VMInst kBreakInst = {static_cast<std::uint32_t>(InstOp::Break)};
 
 }  // namespace
 
@@ -22,7 +22,7 @@ void VMInstContainer::PushInst(InstOp op) {
 
 void VMInstContainer::PushInst(InstOp op, std::uint32_t opr) {
   auto &insts = cur_env_ == &global_env_ ? global_insts_ : insts_;
-  VMInst inst = {op, opr};
+  VMInst inst = {static_cast<std::uint32_t>(op), opr};
   insts.push_back(inst);
 }
 
@@ -116,11 +116,12 @@ void VMInstContainer::PushLoad(std::string_view sym) {
   auto sym_id = GetSymbol(sym);
   // check if last instruction is 'StVar/StVarP sym'
   if (auto last = GetLastInst();
-      last && (last->op == InstOp::StVar || last->op == InstOp::StVarP)) {
+      last && (last->op == static_cast<std::uint32_t>(InstOp::StVar) ||
+               last->op == static_cast<std::uint32_t>(InstOp::StVarP))) {
     // check if is the same symbol
     if (last->opr == sym_id) {
       // just rewrite last instruction as 'StVarP'
-      last->op = InstOp::StVarP;
+      last->op = static_cast<std::uint32_t>(InstOp::StVarP);
       return;
     }
   }
@@ -144,11 +145,12 @@ void VMInstContainer::PushLoad(VMOpr imm) {
 void VMInstContainer::PushLdReg(RegId reg_id) {
   // check if last instruction is 'StReg/StRegP reg_id'
   if (auto last = GetLastInst();
-      last && (last->op == InstOp::StReg || last->op == InstOp::StRegP)) {
+      last && (last->op == static_cast<std::uint32_t>(InstOp::StReg) ||
+               last->op == static_cast<std::uint32_t>(InstOp::StRegP))) {
     // check if is the same register id
     if (last->opr == reg_id) {
       // just rewrite last instruction as 'StRegP'
-      last->op = InstOp::StRegP;
+      last->op = static_cast<std::uint32_t>(InstOp::StRegP);
       return;
     }
   }
@@ -285,9 +287,9 @@ void VMInstContainer::SealContainer() {
       // check to see if there are any non-function call instructions
       for (const auto &pc : info.related_insts) {
         auto &inst = insts_[pc];
-        if (inst.op == InstOp::Call) {
+        if (inst.op == static_cast<std::uint32_t>(InstOp::Call)) {
           // function call found, convert to external function call
-          inst.op = InstOp::CallExt;
+          inst.op = static_cast<std::uint32_t>(InstOp::CallExt);
           inst.opr = sym_pool_.LogId(label);
         }
         else {
@@ -312,7 +314,7 @@ void VMInstContainer::ToggleBreakpoint(VMAddr pc, bool enable) {
   if (enable) {
     // set breakpoint
     breakpoints_[pc] = insts_[pc].op;
-    insts_[pc].op = InstOp::Break;
+    insts_[pc].op = static_cast<std::uint32_t>(InstOp::Break);
   }
   else {
     // remove breakpoint
@@ -328,7 +330,7 @@ void VMInstContainer::Dump(std::ostream &os) const {
     const auto &inst = insts_[pc];
     os << pc << ":\t" << kInstOpStr[static_cast<int>(inst.op)] << '\t';
     // NOTE: the order of 'case' statements is important
-    switch (inst.op) {
+    switch (static_cast<InstOp>(inst.op)) {
       case InstOp::Var: case InstOp::Arr: case InstOp::LdVar:
       case InstOp::StVar: case InstOp::StVarP: case InstOp::CallExt: {
         // dump as 'sym'

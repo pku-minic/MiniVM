@@ -128,7 +128,7 @@ class VMInstContainer {
   // all instructions
   std::vector<VMInst> insts_, global_insts_;
   // all breakpoints
-  std::unordered_map<VMAddr, InstOp> breakpoints_;
+  std::unordered_map<VMAddr, std::uint32_t> breakpoints_;
   // whether the container is in trap mode
   bool trap_mode_;
 };
