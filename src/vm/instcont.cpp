@@ -22,7 +22,8 @@ void VMInstContainer::PushInst(InstOp op) {
 
 void VMInstContainer::PushInst(InstOp op, std::uint32_t opr) {
   auto &insts = cur_env_ == &global_env_ ? global_insts_ : insts_;
-  insts.push_back({op, opr});
+  VMInst inst = {op, opr};
+  insts.push_back(inst);
 }
 
 VMInst *VMInstContainer::GetLastInst() {
@@ -80,7 +81,7 @@ void VMInstContainer::Reset() {
   // insert jump instruction to entry point
   cur_env_ = &local_env_;
   LogRelatedInsts(kVMEntry);
-  insts_.push_back({InstOp::Jmp});
+  PushInst(InstOp::Jmp);
   cur_env_ = &global_env_;
 }
 
