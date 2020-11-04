@@ -104,11 +104,11 @@ void VM::Reset() {
 }
 
 std::optional<VMOpr> VM::Run() {
-#define VM_NEXT(pc_ofs)                            \
-  do {                                             \
-    pc_ += pc_ofs;                                 \
-    inst = cont_.GetInst(pc_);                     \
-    goto *kInstLabels[static_cast<int>(inst->op)]; \
+#define VM_NEXT(pc_ofs)          \
+  do {                           \
+    pc_ += pc_ofs;               \
+    inst = cont_.GetInst(pc_);   \
+    goto *kInstLabels[inst->op]; \
   } while (0)
 
   const void *kInstLabels[] = {VM_INSTS(VM_EXPAND_LABEL_LIST)};
