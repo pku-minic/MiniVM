@@ -13,7 +13,7 @@ Before building MiniVM, please make sure you have installed the following depend
 Then you can build this repository by executing the following command lines:
 
 ```
-$ git clone --recursive https://github.com/MaxXSoft/MiniVM.git
+$ git clone --recursive https://github.com/pku-minic/MiniVM.git
 $ cd MiniVM
 $ mkdir build
 $ cd build
