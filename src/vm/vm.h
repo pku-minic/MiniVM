@@ -58,6 +58,8 @@ class VM {
   // getters
   // symbol pool
   SymbolPool &sym_pool() { return sym_pool_; }
+  // instruction container
+  VMInstContainer &cont() { return cont_; }
   // operand stack
   std::stack<VMOpr> &oprs() { return oprs_; }
   // memory pool
