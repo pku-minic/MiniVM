@@ -11,12 +11,6 @@
 #include "readline/readline.h"
 #include "readline/history.h"
 
-namespace {
-
-//
-
-}  // namespace
-
 void DebuggerBase::InitCommands() {
   // register 'help' command
   RegisterCommand(
@@ -24,6 +18,14 @@ void DebuggerBase::InitCommands() {
       "[CMD]", "show help message of CMD",
       "Show a list of all debugger commands, or give details about a "
       "specific command.");
+  // register 'quit' command
+  RegisterCommand(
+      "quit", "q",
+      [this](std::istream &is) {
+        std::exit(0);
+        return false;
+      },
+      "", "quit debugger", "Quit debugger.");
 }
 
 const DebuggerBase::CmdInfo *DebuggerBase::GetCommandInfo(

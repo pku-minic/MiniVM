@@ -9,6 +9,7 @@
 #include <sstream>
 #include <cstdint>
 
+// base class of expression evaluator
 template <typename ValType>
 class ExprEvaluatorBase {
  public:

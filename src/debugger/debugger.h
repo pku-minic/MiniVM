@@ -10,7 +10,9 @@
 // command line interface of debugger
 class DebuggerBase {
  public:
-  DebuggerBase() : prompt_("> ") { InitCommands(); }
+  DebuggerBase(std::string_view prompt) : prompt_(prompt) {
+    InitCommands();
+  }
 
   // setters
   void set_prompt(std::string_view prompt) { prompt_ = prompt; }
