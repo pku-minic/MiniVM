@@ -12,7 +12,7 @@
 template <typename ValType>
 class ExprEvaluatorBase {
  public:
-  ExprEvaluator() : next_id_(0) {}
+  ExprEvaluatorBase() : next_id_(0) {}
 
   // evaluate expression with record
   std::optional<ValType> Eval(std::string_view expr);
