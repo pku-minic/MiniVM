@@ -220,19 +220,23 @@ bool MiniDebugger::Continue(std::istream &is) {
 }
 
 bool MiniDebugger::NextLine(std::istream &is) {
-  //
+  // TODO
+  return true;
 }
 
 bool MiniDebugger::NextInst(std::istream &is) {
-  //
+  // TODO
+  return true;
 }
 
 bool MiniDebugger::StepLine(std::istream &is) {
-  //
+  // TODO
+  return true;
 }
 
 bool MiniDebugger::StepInst(std::istream &is) {
-  //
+  // TODO
+  return true;
 }
 
 bool MiniDebugger::PrintExpr(std::istream &is) {
@@ -257,20 +261,25 @@ bool MiniDebugger::PrintExpr(std::istream &is) {
   }
   // print result
   std::cout << "$" << id << " = " << *value << std::endl;
+  return false;
 }
 
 bool MiniDebugger::ExamineMem(std::istream &is) {
-  //
+  // TODO
+  return false;
 }
 
 bool MiniDebugger::PrintInfo(std::istream &is) {
-  //
+  // TODO
+  return false;
 }
 
 bool MiniDebugger::SetLayout(std::istream &is) {
-  //
+  // TODO
+  return false;
 }
 
 bool MiniDebugger::DisasmMem(std::istream &is) {
-  //
+  // TODO
+  return false;
 }
