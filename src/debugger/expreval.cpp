@@ -357,7 +357,7 @@ std::optional<ValType> ExprEvaluatorBase<ValType>::Eval(
 template <typename ValType>
 std::optional<ValType> ExprEvaluatorBase<ValType>::Eval(std::uint32_t id) {
   auto it = records_.find(id);
-  if (it == records_.end()) return false;
+  if (it == records_.end()) return {};
   return Eval(it->second, false);
 }
 
