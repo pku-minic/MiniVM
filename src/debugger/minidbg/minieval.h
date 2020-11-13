@@ -14,6 +14,12 @@ class MiniEvaluator : public ExprEvaluatorBase<VMOpr> {
   std::optional<VMOpr> GetValueOfAddr(VMOpr addr) override;
 
  private:
+  // get value of symbol in environment
+  std::optional<VMOpr> GetSymVal(std::string_view sym);
+  // get value of static registers or PC
+  std::optional<VMOpr> GetRegVal(std::string_view reg);
+
+  // current MiniVM instance
   VM &vm_;
 };
 
