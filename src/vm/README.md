@@ -132,7 +132,7 @@ MiniVM ***must ensure***:
 
 * Before the `Call`/`CallExt` instructions are executed, there is no value in the operand stack, except for function parameters.
 * When executing Eeyore generated instructions, there are no data blocks with symbol `$frame` in the current environment.
-* When executing Tigger generated instructions, there must be a data blocks with symbol `$frame` in the current environment, and, all `$frame`s should be placed consecutively in the same area of the memory pool.
+* When executing Tigger generated instructions, there must be a data blocks with symbol `$frame` in all of the local environment, and, all `$frame`s should be placed consecutively in the same area of the memory pool.
 
 Considering the impact on performance, we strongly recommend that developers should create two versions of external functions for MiniVM running in Eeyore mode and Tigger mode.
 
