@@ -68,6 +68,8 @@ class VM {
   const MemPoolPtr &mem_pool() const { return mem_pool_; }
   // current environment & return address
   EnvAddrPair &env_addr_pair() { return envs_.top(); }
+  // global environment
+  const EnvPtr &global_env() const { return global_env_; }
   // static registers
   VMOpr &regs(RegId id) { return regs_[id]; }
 
