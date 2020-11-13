@@ -60,6 +60,8 @@ class VM {
   SymbolPool &sym_pool() { return sym_pool_; }
   // instruction container
   VMInstContainer &cont() { return cont_; }
+  // program counter
+  VMAddr pc() const { return pc_; }
   // operand stack
   std::stack<VMOpr> &oprs() { return oprs_; }
   // memory pool
