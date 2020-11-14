@@ -14,7 +14,8 @@
 class MiniDebugger : public DebuggerBase {
  public:
   MiniDebugger(VM &vm)
-      : DebuggerBase("minidbg> "), vm_(vm), eval_(vm), next_id_(0) {
+      : DebuggerBase("minidbg> "), vm_(vm), eval_(vm), next_id_(0),
+        layout_fmt_(LayoutFormat::Source) {
     InitDebuggerCommands();
     RegisterDebuggerCallback();
   }
@@ -38,13 +39,8 @@ class MiniDebugger : public DebuggerBase {
     std::uint32_t hit_count;
   };
 
-  // item of 'info' command
-  enum class InfoItem {
-    Stack, Env, Reg, Break, Watch,
-  };
-
   // layout type of auto-disasm
-  enum class DisasmLayoutType {
+  enum class LayoutFormat {
     Source, Asm,
   };
 
@@ -59,14 +55,31 @@ class MiniDebugger : public DebuggerBase {
 
   // read POS from input stream
   std::optional<VMAddr> ReadPosition(std::istream &is);
+  // read EXPR from input stream (with record)
+  std::optional<VMOpr> ReadExpression(std::istream &is);
   // read EXPR from input stream
-  std::optional<VMAddr> ReadExpression(std::istream &is);
+  std::optional<VMOpr> ReadExpression(std::istream &is, bool record);
   // delete the specific breakpoint
   // returns false if breakpoint not found
   bool DeleteBreak(std::uint32_t id);
   // delete the specific watchpoint
   // returns false if watchpoint not found
   bool DeleteWatch(std::uint32_t id);
+  // print operand stack info
+  void PrintStackInfo();
+  // print environment info
+  void PrintEnv(const VM::EnvPtr &env);
+  void PrintEnvInfo();
+  // print static register info
+  void PrintRegInfo();
+  // print breakpoint info
+  void PrintBreakInfo();
+  // print watchpoint info
+  void PrintWatchInfo();
+  // show disassembly near current PC
+  void ShowDisasm();
+  // show disassembly
+  void ShowDisasm(VMAddr pc, std::size_t n);
 
   // create a new breakpoint ('break [POS]')
   bool CreateBreak(std::istream &is);
@@ -107,6 +120,8 @@ class MiniDebugger : public DebuggerBase {
   std::unordered_map<VMAddr, BreakInfo *> pc_bp_;
   // all watchpoints
   std::unordered_map<std::uint32_t, WatchInfo> watches_;
+  // layout format
+  LayoutFormat layout_fmt_;
 };
 
 #endif  // MINIVM_DEBUGGER_MINIDBG_MINIDBG_H_

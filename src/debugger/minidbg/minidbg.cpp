@@ -6,7 +6,30 @@
 #include <cstdlib>
 #include <cctype>
 
+#include "front/token.h"
+
 #define CMD_HANDLER(func) [this](std::istream &is) { return func(is); }
+
+namespace {
+
+// name of static registers
+const char *kRegNames[] = {TOKEN_REGISTERS(TOKEN_EXPAND_SECOND)};
+
+// item of 'info' command
+enum class InfoItem {
+  Stack, Env, Reg, Break, Watch,
+};
+
+// string -> InfoItem
+const std::unordered_map<std::string_view, InfoItem> kInfoItems = {
+    {"stack", InfoItem::Stack}, {"s", InfoItem::Stack},
+    {"env", InfoItem::Env},     {"e", InfoItem::Env},
+    {"reg", InfoItem::Reg},     {"r", InfoItem::Reg},
+    {"break", InfoItem::Break}, {"b", InfoItem::Break},
+    {"watch", InfoItem::Watch}, {"w", InfoItem::Watch},
+};
+
+}  // namespace
 
 void MiniDebugger::InitDebuggerCommands() {
   RegisterCommand("break", "b", CMD_HANDLER(CreateBreak), "[POS]",
@@ -54,14 +77,13 @@ void MiniDebugger::InitDebuggerCommands() {
                   "  reg/r    --- static registers\n"
                   "  break/b  --- breakpoints\n"
                   "  watch/w  --- watchpoints");
-  RegisterCommand("layout", "", CMD_HANDLER(SetLayout), "TYPE",
-                  "set layout of automatic disassemble",
-                  "Set layout of automatic disassemble, "
-                  "TYPE can be 'src' or 'asm'");
+  RegisterCommand("layout", "", CMD_HANDLER(SetLayout), "FMT",
+                  "set layout of disassembler",
+                  "Set layout of disassembler, FMT can be 'src' or 'asm'");
   RegisterCommand("disasm", "da", CMD_HANDLER(DisasmMem), "[N POS]",
                   "set layout of automatic disassemble",
-                  "Disassemble N units memory at POS, "
-                  "disassemble 10 loc near current line by default.");
+                  "Disassemble N loc/instructions at POS, "
+                  "disassemble 10 loc near current PC by default.");
 }
 
 void MiniDebugger::RegisterDebuggerCallback() {
@@ -118,7 +140,12 @@ std::optional<VMAddr> MiniDebugger::ReadPosition(std::istream &is) {
   }
 }
 
-std::optional<VMAddr> MiniDebugger::ReadExpression(std::istream &is) {
+std::optional<VMOpr> MiniDebugger::ReadExpression(std::istream &is) {
+  return ReadExpression(is, true);
+}
+
+std::optional<VMOpr> MiniDebugger::ReadExpression(std::istream &is,
+                                                   bool record) {
   // read expression from input stream
   std::string expr;
   if (!std::getline(is, expr)) {
@@ -126,7 +153,7 @@ std::optional<VMAddr> MiniDebugger::ReadExpression(std::istream &is) {
     return {};
   }
   // evaluate expression
-  return eval_.Eval(expr);
+  return eval_.Eval(expr, record);
 }
 
 bool MiniDebugger::DeleteBreak(std::uint32_t id) {
@@ -150,6 +177,114 @@ bool MiniDebugger::DeleteWatch(std::uint32_t id) {
   eval_.RemoveRecord(info.record_id);
   watches_.erase(it);
   return true;
+}
+
+void MiniDebugger::PrintStackInfo() {
+  const auto &oprs = vm_.oprs();
+  std::cout << "operand stack size: " << oprs.size() << std::endl;
+  if (!oprs.empty()) {
+    std::cout << "top of stack: " << oprs.top() << std::endl;
+  }
+}
+
+void MiniDebugger::PrintEnv(const VM::EnvPtr &env) {
+  if (env->empty()) {
+    std::cout << "  <empty>" << std::endl;
+  }
+  else {
+    for (const auto &[sym_id, val] : *env) {
+      auto sym = vm_.sym_pool().FindSymbol(sym_id);
+      assert(sym);
+      std::cout << "  " << *sym << " = " << val << std::endl;
+    }
+  }
+}
+
+void MiniDebugger::PrintEnvInfo() {
+  const auto &[env, addr] = vm_.env_addr_pair();
+  std::cout << "return address: " << addr << std::endl;
+  std::cout << "current environment:" << std::endl;
+  PrintEnv(env);
+  std::cout << "global environment:" << std::endl;
+  PrintEnv(vm_.global_env());
+}
+
+void MiniDebugger::PrintRegInfo() {
+  // check if in Tigger mode
+  const auto &[env, _] = vm_.env_addr_pair();
+  auto id = vm_.sym_pool().FindId(kVMFrame);
+  assert(id);
+  if (env->find(*id) != env->end()) {
+    std::cout << "WARNING: MiniVM may not currently run in Tigger mode, "
+                 "static registers should not be used."
+              << std::endl << std::endl;
+  }
+  // print PC
+  std::cout << "current PC address: " << vm_.pc() << std::endl;
+  // print value of static registers
+  std::cout << "static registers:" << std::endl << "  ";
+  int count = 0;
+  for (RegId i = 0; i < TOKEN_COUNT(TOKEN_REGISTERS); ++i) {
+    // print value of register
+    auto val = vm_.regs(i);
+    std::cout << std::setw(4) << std::setfill(' ') << std::left
+              << kRegNames[i] << std::hex << std::setw(8)
+              << std::setfill('0') << std::right << val << "   ";
+    // print new line
+    if (count++ == 4) {
+      count = 0;
+      std::cout << std::endl << "  ";
+    }
+  }
+  if (count) std::cout << std::endl;
+}
+
+void MiniDebugger::PrintBreakInfo() {
+  if (breaks_.empty()) {
+    std::cout << "no breakpoints currently set" << std::endl;
+  }
+  else {
+    std::cout << "number of breakpoints: " << breaks_.size() << std::endl;
+    for (const auto &[id, info] : breaks_) {
+      std::cout << "  breakpoint #" << id << ": pc = 0x" << std::hex
+                << std::setw(8) << std::setfill('0') << info.addr
+                << std::dec << ", hit_count = " << info.hit_count
+                << std::endl;
+    }
+  }
+}
+
+void MiniDebugger::PrintWatchInfo() {
+  if (watches_.empty()) {
+    std::cout << "no watchpoints currently set" << std::endl;
+  }
+  else {
+    std::cout << "number of watchpoints: " << watches_.size() << std::endl;
+    for (const auto &[id, info] : watches_) {
+      std::cout << "  watchpoint #" << id << ": $" << info.record_id
+                << " = '";
+      eval_.PrintExpr(std::cout, info.record_id);
+      std::cout << "', value = " << info.last_val
+                << ", hit_count = " << info.hit_count << std::endl;
+    }
+  }
+}
+
+void MiniDebugger::ShowDisasm() {
+  auto pc = vm_.pc();
+  std::size_t n = 10;
+  if (layout_fmt_ == LayoutFormat::Asm) {
+    if (pc >= 2) pc -= 2;
+  }
+  else {
+    assert(layout_fmt_ == LayoutFormat::Source);
+    // TODO
+  }
+  ShowDisasm(pc, n);
+}
+
+void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n) {
+  // TODO
 }
 
 bool MiniDebugger::CreateBreak(std::istream &is) {
@@ -265,21 +400,96 @@ bool MiniDebugger::PrintExpr(std::istream &is) {
 }
 
 bool MiniDebugger::ExamineMem(std::istream &is) {
-  // TODO
+  // get number N
+  std::uint32_t n;
+  is >> n;
+  if (!is || !n) {
+    LogError("invalid number N");
+    return false;
+  }
+  // get expression
+  auto val = ReadExpression(is, false);
+  if (!val) return false;
+  // print memory units
+  auto addr = *val;
+  while (n--) {
+    // print address
+    std::cout << std::hex << std::setfill('0') << std::setw(8) << addr;
+    // get pointer of current unit
+    auto ptr = reinterpret_cast<char *>(vm_.mem_pool()->GetAddress(addr));
+    addr += 4;
+    // print contents
+    std::cout << ": " << std::setw(2) << std::setfill('0')
+              << static_cast<int>(*ptr++) << ' ';
+    std::cout << std::setw(2) << std::setfill('0')
+              << static_cast<int>(*ptr++) << ' ';
+    std::cout << std::setw(2) << std::setfill('0')
+              << static_cast<int>(*ptr++) << ' ';
+    std::cout << std::setw(2) << std::setfill('0')
+              << static_cast<int>(*ptr++);
+    std::cout << std::dec << std::endl;
+  }
   return false;
 }
 
 bool MiniDebugger::PrintInfo(std::istream &is) {
-  // TODO
+  // get items
+  std::string item_str;
+  is >> item_str;
+  auto it = kInfoItems.find(item_str);
+  if (it == kInfoItems.end()) {
+    LogError("invalid 'ITEM'");
+    return false;
+  }
+  // print information
+  switch (it->second) {
+    case InfoItem::Stack: PrintStackInfo(); break;
+    case InfoItem::Env: PrintEnvInfo(); break;
+    case InfoItem::Reg: PrintRegInfo(); break;
+    case InfoItem::Break: PrintBreakInfo(); break;
+    case InfoItem::Watch: PrintWatchInfo(); break;
+    default: assert(false);
+  }
   return false;
 }
 
 bool MiniDebugger::SetLayout(std::istream &is) {
-  // TODO
+  // get format
+  std::string fmt;
+  is >> fmt;
+  // parse format
+  if (fmt == "src") {
+    layout_fmt_ = LayoutFormat::Source;
+  }
+  else if (fmt == "asm") {
+    layout_fmt_ = LayoutFormat::Asm;
+  }
+  else {
+    LogError("invalid layout format");
+  }
   return false;
 }
 
 bool MiniDebugger::DisasmMem(std::istream &is) {
-  // TODO
+  // no parameters
+  if (is.eof()) {
+    ShowDisasm();
+  }
+  else {
+    // get parameters
+    std::size_t n;
+    is >> n;
+    if (!is || !n) {
+      LogError("invalid count 'N'");
+      return false;
+    }
+    auto pc = ReadExpression(is, false);
+    if (!pc) {
+      LogError("invalid 'EXPR'");
+      return false;
+    }
+    // show disassembly
+    ShowDisasm(*pc, n);
+  }
   return false;
 }
