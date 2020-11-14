@@ -66,11 +66,12 @@ void VMInstContainer::LogRelatedInsts(std::string_view label) {
   info.related_insts.push_back(insts_.size());
 }
 
-void VMInstContainer::Reset() {
+void VMInstContainer::Reset(std::string_view src_file) {
   sym_pool_.Reset();
   has_error_ = false;
   global_env_.clear();
   local_env_.clear();
+  src_file_ = src_file;
   line_defs_.clear();
   pc_defs_.clear();
   label_defs_.clear();
@@ -333,29 +334,36 @@ void VMInstContainer::ToggleBreakpoint(VMAddr pc, bool enable) {
   }
 }
 
+bool VMInstContainer::Dump(std::ostream &os, VMAddr pc) const {
+  if (pc >= insts_.size()) return false;
+  const auto &inst = insts_[pc];
+  os << kInstOpStr[static_cast<int>(inst.op)] << '\t';
+  // NOTE: the order of 'case' statements is important
+  switch (static_cast<InstOp>(inst.op)) {
+    case InstOp::Var: case InstOp::Arr: case InstOp::LdVar:
+    case InstOp::StVar: case InstOp::StVarP: case InstOp::CallExt: {
+      // dump as 'sym'
+      auto sym = sym_pool_.FindSymbol(inst.opr);
+      assert(sym);
+      os << *sym;
+      break;
+    }
+    case InstOp::LdReg: case InstOp::StReg: case InstOp::StRegP:
+    case InstOp::Imm: case InstOp::ImmHi: case InstOp::Bnz:
+    case InstOp::Jmp: case InstOp::Call: {
+      // dump 'opr' field directly
+      os << inst.opr;
+      break;
+    }
+    default:;
+  }
+  return true;
+}
+
 void VMInstContainer::Dump(std::ostream &os) const {
   for (VMAddr pc = 0; pc < insts_.size(); ++pc) {
-    const auto &inst = insts_[pc];
-    os << pc << ":\t" << kInstOpStr[static_cast<int>(inst.op)] << '\t';
-    // NOTE: the order of 'case' statements is important
-    switch (static_cast<InstOp>(inst.op)) {
-      case InstOp::Var: case InstOp::Arr: case InstOp::LdVar:
-      case InstOp::StVar: case InstOp::StVarP: case InstOp::CallExt: {
-        // dump as 'sym'
-        auto sym = sym_pool_.FindSymbol(inst.opr);
-        assert(sym);
-        os << *sym;
-        break;
-      }
-      case InstOp::LdReg: case InstOp::StReg: case InstOp::StRegP:
-      case InstOp::Imm: case InstOp::ImmHi: case InstOp::Bnz:
-      case InstOp::Jmp: case InstOp::Call: {
-        // dump 'opr' field directly
-        os << inst.opr;
-        break;
-      }
-      default:;
-    }
+    os << pc << ":\t";
+    Dump(os, pc);
     os << std::endl;
   }
 }
