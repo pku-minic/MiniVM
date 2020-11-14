@@ -18,10 +18,13 @@
 // container for storing VM instructions
 class VMInstContainer {
  public:
-  VMInstContainer(SymbolPool &sym_pool) : sym_pool_(sym_pool) { Reset(); }
+  VMInstContainer(SymbolPool &sym_pool, std::string_view src_file)
+      : sym_pool_(sym_pool) {
+    Reset(src_file);
+  }
 
   // reset internal states
-  void Reset();
+  void Reset(std::string_view src_file);
 
   // instruction generators, for frontends
   //
@@ -71,6 +74,8 @@ class VMInstContainer {
   // in trap mode, when MiniVM tries to fetch instructions from
   // the container, a 'Break' instruction will always be returned
   void ToggleTrapMode(bool enable) { trap_mode_ = enable; }
+  // dump the specific instruction
+  bool Dump(std::ostream &os, VMAddr pc) const;
   // dump all stored instructions
   void Dump(std::ostream &os) const;
   // query pc by line number
@@ -79,6 +84,8 @@ class VMInstContainer {
   std::optional<VMAddr> FindPC(std::string_view label) const;
   // query line number by pc
   std::optional<std::uint32_t> FindLineNum(VMAddr pc) const;
+  // getter, path to source file
+  std::string_view src_file() const { return src_file_; }
 
   // instruction fetcher, for MiniVM instances
   //
@@ -117,6 +124,8 @@ class VMInstContainer {
   std::uint32_t cur_line_num_;
   // global & local & current environment
   std::unordered_set<SymId> global_env_, local_env_, *cur_env_;
+  // path to current source file (for debugging)
+  std::string src_file_;
   // line number corresponding to pc addresses (for debugging)
   std::unordered_map<std::uint32_t, VMAddr> line_defs_;
   // line number of pc addresses (for debugging)
