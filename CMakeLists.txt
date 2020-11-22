@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.13)
 project(MiniVM VERSION "0.0.1")
 
 # # set compiler path
