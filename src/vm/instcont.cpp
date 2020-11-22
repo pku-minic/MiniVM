@@ -114,10 +114,14 @@ void VMInstContainer::PushLoad() {
 
 void VMInstContainer::PushLoad(std::string_view sym) {
   auto sym_id = GetSymbol(sym);
-  // check if last instruction is 'StVar/StVarP sym'
+  // check if last instruction is 'StVar sym'
+  /* NOTE:
+   *  the 'StVarP sym' instruction can not be rewritten,
+   *  consider the following Eeyore statement:
+   *    t0 = t0 + t0
+   */
   if (auto last = GetLastInst();
-      last && (last->op == static_cast<std::uint32_t>(InstOp::StVar) ||
-               last->op == static_cast<std::uint32_t>(InstOp::StVarP))) {
+      last && last->op == static_cast<std::uint32_t>(InstOp::StVar)) {
     // check if is the same symbol
     if (last->opr == sym_id) {
       // just rewrite last instruction as 'StVarP'
@@ -155,27 +159,6 @@ void VMInstContainer::PushLdReg(RegId reg_id) {
     }
   }
   PushInst(InstOp::LdReg, reg_id);
-}
-
-void VMInstContainer::PushLdParam(std::string_view sym) {
-  auto sym_id = GetSymbol(sym);
-  // check if last instruction is 'StVar sym'
-  /* NOTE:
-   *  the 'StVarP sym' instruction can not be rewritten
-   *  because the following may happen
-   *    param t0
-   *    param t0
-   */
-  if (auto last = GetLastInst();
-      last && last->op == static_cast<std::uint32_t>(InstOp::StVar)) {
-    // check if is the same symbol
-    if (last->opr == sym_id) {
-      // just rewrite last instruction as 'StVarP'
-      last->op = static_cast<std::uint32_t>(InstOp::StVarP);
-      return;
-    }
-  }
-  PushInst(InstOp::LdVar, sym_id);
 }
 
 void VMInstContainer::PushLdFrame(VMOpr offset) {
