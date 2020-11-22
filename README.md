@@ -6,7 +6,7 @@ MiniVM is a virtual machine for interpreting Eeyore/Tigger IR, which is designed
 
 Before building MiniVM, please make sure you have installed the following dependencies:
 
-* `cmake` 3.5 or later
+* `cmake` 3.13 or later
 * C++ compiler supporting C++17
 * `readline`
 
