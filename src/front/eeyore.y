@@ -71,6 +71,17 @@ static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
       }
     }
 
+    // generate 'param' instruction
+    template <typename InstCont>
+    void GenerateParam(InstCont &cont) const {
+      if (is_sym) {
+        cont.PushLdParam(val.sym);
+      }
+      else {
+        cont.PushLoad(val.num);
+      }
+    }
+
     union {
       const char *sym;
       std::int32_t num;
@@ -192,7 +203,7 @@ Expression
   | LABEL ':' { CONT().PushLabel($1); }
   | PARAM RightValue {
     CONT().LogLineNum(@$.first_line);
-    $2.GenerateLoad(CONT());
+    $2.GenerateParam(CONT());
   }
   | CALL FUNCTION {
     CONT().LogLineNum(@$.first_line);
