@@ -151,7 +151,7 @@ Expression
     auto op = InstOp::Add;
     switch ($3) {
       case TokenOp::Sub: op = InstOp::Neg; break;
-      case TokenOp::Not: op = InstOp::LAnd; break;
+      case TokenOp::Not: op = InstOp::LNot; break;
       default: CONT().LogError("invalid unary operator"); break;
     }
     CONT().PushOp(op);
