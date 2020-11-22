@@ -71,17 +71,6 @@ static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
       }
     }
 
-    // generate 'param' instruction
-    template <typename InstCont>
-    void GenerateParam(InstCont &cont) const {
-      if (is_sym) {
-        cont.PushLdParam(val.sym);
-      }
-      else {
-        cont.PushLoad(val.num);
-      }
-    }
-
     union {
       const char *sym;
       std::int32_t num;
@@ -162,7 +151,7 @@ Expression
     auto op = InstOp::Add;
     switch ($3) {
       case TokenOp::Sub: op = InstOp::Neg; break;
-      case TokenOp::Not: op = InstOp::LNot; break;
+      case TokenOp::Not: op = InstOp::LAnd; break;
       default: CONT().LogError("invalid unary operator"); break;
     }
     CONT().PushOp(op);
@@ -203,7 +192,7 @@ Expression
   | LABEL ':' { CONT().PushLabel($1); }
   | PARAM RightValue {
     CONT().LogLineNum(@$.first_line);
-    $2.GenerateParam(CONT());
+    $2.GenerateLoad(CONT());
   }
   | CALL FUNCTION {
     CONT().LogLineNum(@$.first_line);
