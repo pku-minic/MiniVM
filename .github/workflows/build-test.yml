@@ -1,0 +1,40 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [$default-branch]
+  pull_request:
+    branches: [$default-branch]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Configure Dependencies
+      run: sudo apt-get install -y flex bison
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
+
+    # - name: Test
+    #   working-directory: ${{runner.workspace}}/build
+    #   shell: bash
+    #   run: ctest -C $BUILD_TYPE
