@@ -28,9 +28,6 @@ jobs:
         repository: pku-minic/MiniVM-test
         path: test
 
-    - name: Configure Dependencies
-      run: sudo apt-get install -y flex bison
-
     - name: Create Build Environment
       run: cmake -E make_directory ${{runner.workspace}}/build
 
@@ -45,6 +42,5 @@ jobs:
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Test
-      working-directory: ${{runner.workspace}}/test
-      shell: bash
-      run: ./run_test.sh ${{runner.workspace}}/build/minivm
+      working-directory: ${{runner.workspace}}/build
+      run: $GITHUB_WORKSPACE/test/run_test.sh ./minivm
