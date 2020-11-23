@@ -12,13 +12,21 @@ env:
   BUILD_TYPE: Debug
 
 jobs:
-  build-linux:
+  build:
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip-ci')"
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout MiniVM
+      uses: actions/checkout@v2
       with:
         submodules: recursive
+
+    - name: Checkout Test Scripts
+      uses: actions/checkout@v2
+      with:
+        repository: pku-minic/MiniVM-test
+        path: test
 
     - name: Configure Dependencies
       run: sudo apt-get install -y flex bison
@@ -36,7 +44,6 @@ jobs:
       shell: bash
       run: cmake --build . --config $BUILD_TYPE
 
-    # - name: Test
-    #   working-directory: ${{runner.workspace}}/build
-    #   shell: bash
-    #   run: ctest -C $BUILD_TYPE
+    - name: Test
+      working-directory: ${{runner.workspace}}/test
+      run: ./run_test.sh ${{runner.workspace}}/build/minivm
