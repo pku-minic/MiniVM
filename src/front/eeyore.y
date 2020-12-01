@@ -94,6 +94,7 @@ static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
 Program
   : /* Empty */
   | Program Declaration EOL
+  | Program Initialization EOL
   | Program FunctionDef EOL
   | Program EOL
   ;
@@ -107,6 +108,22 @@ Declaration
     CONT().LogLineNum(@$.first_line);
     CONT().PushLoad($2);
     CONT().PushArr($3);
+  }
+  ;
+
+Initialization
+  : SYMBOL '=' NUM {
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLoad($3);
+    CONT().PushStore($1);
+  }
+  | SYMBOL '[' NUM ']' '=' NUM {
+    CONT().LogLineNum(@$.first_line);
+    CONT().PushLoad($6);
+    CONT().PushLoad($3);
+    CONT().PushLoad($1);
+    CONT().PushOp(InstOp::Add);
+    CONT().PushStore();
   }
   ;
 
