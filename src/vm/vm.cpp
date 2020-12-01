@@ -117,20 +117,16 @@ std::optional<VMOpr> VM::Run() {
 
   // allocate memory for variable
   VM_LABEL(Var) {
-    auto ret = envs_.top().first->insert({inst->opr, 0}).second;
-    static_cast<void>(ret);
-    assert(ret);
+    envs_.top().first->insert({inst->opr, 0});
     VM_NEXT(1);
   }
 
   // allocate memory for array
   VM_LABEL(Arr) {
+    // add a new entry to environment
+    auto ret = envs_.top().first->insert({inst->opr, 0});
     // allocate a new memory
-    auto id = mem_pool_->Allocate(PopValue());
-    // add to environment
-    auto ret = envs_.top().first->insert({inst->opr, id}).second;
-    static_cast<void>(ret);
-    assert(ret);
+    if (ret.second) ret.first->second = mem_pool_->Allocate(PopValue());
     VM_NEXT(1);
   }
 
