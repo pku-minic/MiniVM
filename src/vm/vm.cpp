@@ -134,7 +134,11 @@ std::optional<VMOpr> VM::Run() {
 
   // allocate memory for variable
   VM_LABEL(Var) {
-    envs_.top().first->insert({inst->opr, 0});
+    auto succ = envs_.top().first->insert({inst->opr, 0}).second;
+#ifndef VM_LEGACY_MODE
+    VM_ASSERT(succ);
+#endif
+    static_cast<void>(succ);
     VM_NEXT(1);
   }
 
@@ -142,6 +146,9 @@ std::optional<VMOpr> VM::Run() {
   VM_LABEL(Arr) {
     // add a new entry to environment
     auto ret = envs_.top().first->insert({inst->opr, 0});
+#ifndef VM_LEGACY_MODE
+    VM_ASSERT(ret.second);
+#endif
     // allocate a new memory
     if (ret.second) ret.first->second = mem_pool_->Allocate(PopValue());
     VM_NEXT(1);
