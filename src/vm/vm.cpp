@@ -2,9 +2,26 @@
 
 #include <iostream>
 #include <string>
-#include <cassert>
+#include <cstdlib>
 
 #include "xstl/style.h"
+
+// assertion with VM runtime info
+#ifdef NDEBUG
+#define VM_ASSERT(e) static_cast<void>(e)
+#else
+#define VM_STR1(s) #s
+#define VM_STR(s) VM_STR1(s)
+#define VM_ASSERT(e)                          \
+  do {                                        \
+    if (!(e)) {                               \
+      LogError("assertion failed: " #e        \
+               ", file " VM_STR(__FILE__)     \
+               ", line " VM_STR(__LINE__));   \
+      std::abort();                           \
+    }                                         \
+  } while (0)
+#endif
 
 void VM::LogError(std::string_view message) const {
   using namespace xstl;
@@ -17,14 +34,14 @@ void VM::LogError(std::string_view message) const {
 }
 
 VMOpr VM::PopValue() {
-  assert(!oprs_.empty());
+  VM_ASSERT(!oprs_.empty());
   auto ret = oprs_.top();
   oprs_.pop();
   return ret;
 }
 
 VMOpr &VM::GetOpr() {
-  assert(!oprs_.empty());
+  VM_ASSERT(!oprs_.empty());
   return oprs_.top();
 }
 
@@ -70,7 +87,7 @@ void VM::InitFuncCall() {
     // write value
     auto ret = env->insert({sym, PopValue()}).second;
     static_cast<void>(ret);
-    assert(ret);
+    VM_ASSERT(ret);
   }
 }
 
@@ -152,7 +169,7 @@ std::optional<VMOpr> VM::Run() {
 
   // load static register
   VM_LABEL(LdReg) {
-    assert(inst->opr < regs_.size());
+    VM_ASSERT(inst->opr < regs_.size());
     oprs_.push(regs_[inst->opr]);
     VM_NEXT(1);
   }
@@ -189,14 +206,14 @@ std::optional<VMOpr> VM::Run() {
 
   // store static register
   VM_LABEL(StReg) {
-    assert(inst->opr < regs_.size());
+    VM_ASSERT(inst->opr < regs_.size());
     regs_[inst->opr] = PopValue();
     VM_NEXT(1);
   }
 
   // store static register and preserve
   VM_LABEL(StRegP) {
-    assert(inst->opr < regs_.size());
+    VM_ASSERT(inst->opr < regs_.size());
     regs_[inst->opr] = GetOpr();
     VM_NEXT(1);
   }
