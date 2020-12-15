@@ -147,10 +147,14 @@ void VMInstContainer::PushLoad(VMOpr imm) {
 }
 
 void VMInstContainer::PushLdReg(RegId reg_id) {
-  // check if last instruction is 'StReg/StRegP reg_id'
+  // check if last instruction is 'StReg reg_id'
+  /* NOTE:
+   *  the 'StRegP sym' instruction can not be rewritten,
+   *  consider the following Eeyore statement:
+   *    t0 = t0 + t0
+   */
   if (auto last = GetLastInst();
-      last && (last->op == static_cast<std::uint32_t>(InstOp::StReg) ||
-               last->op == static_cast<std::uint32_t>(InstOp::StRegP))) {
+      last && last->op == static_cast<std::uint32_t>(InstOp::StReg)) {
     // check if is the same register id
     if (last->opr == reg_id) {
       // just rewrite last instruction as 'StRegP'
