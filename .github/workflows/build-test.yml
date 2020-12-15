@@ -27,6 +27,7 @@ jobs:
       with:
         repository: pku-minic/MiniVM-test
         path: test
+        submodules: recursive
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{runner.workspace}}/build
