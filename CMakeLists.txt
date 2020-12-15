@@ -25,12 +25,19 @@ else()
   add_compile_options(-Wall -Werror -Wno-register)
 endif()
 
-# some definitions
+# definitions about version information
 add_compile_definitions(APP_NAME="MiniVM Eeyore/Tigger Virtual Machine")
 add_compile_definitions(APP_VERSION="${PROJECT_VERSION}")
 add_compile_definitions(APP_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
 add_compile_definitions(APP_VERSION_MINOR=${PROJECT_VERSION_MINOR})
 add_compile_definitions(APP_VERSION_PATCH=${PROJECT_VERSION_PATCH})
+
+# definitions about build option
+# legacy mode: don't complain about symbol redefinition
+option(MINIVM_LEGACY_MODE "enable legacy mode" OFF)
+if(MINIVM_LEGACY_MODE)
+  add_compile_definitions(VM_LEGACY_MODE)
+endif()
 
 # find Flex/Bison
 find_package(FLEX REQUIRED)
