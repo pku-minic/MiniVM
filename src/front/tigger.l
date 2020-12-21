@@ -27,7 +27,7 @@ Comment     \/\/.*
 Label       l[0-9]+
 Function    f_[_a-zA-Z][_a-zA-Z0-9]*
 Num         -?[1-9][0-9]*|0
-Variable      v[0-9]+
+Variable    v[0-9]+
 Register    x0|s[0-9]|s1[01]|t[0-6]|a[0-7]
 Op          [\+\-\*\/\%\!]
 LogicOp     !=|==|>|<|>=|<=|\|\||&&
