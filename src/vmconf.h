@@ -3,7 +3,12 @@
 
 // MiniVM configuration
 
+#include <functional>
+
 #include "vm/vm.h"
+
+// type definition of VM initializer
+using VMInit = std::function<void(VM &)>;
 
 // initialize a Eeyore mode MiniVM instance
 void InitEeyoreVM(VM &vm);
