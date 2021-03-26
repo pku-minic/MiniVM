@@ -1,8 +1,15 @@
 #include "debugger/minidbg/srcreader.h"
 
+#include <algorithm>
+#include <iterator>
 #include <limits>
 #include <utility>
 #include <cassert>
+
+void SourceReader::InitTotalLines() {
+  total_lines_ = std::count(std::istreambuf_iterator<char>(ifs_),
+                            std::istreambuf_iterator<char>(), '\n');
+}
 
 void SourceReader::SeekLine(std::uint32_t line_num) {
   ifs_.seekg(std::ios::beg);
@@ -12,6 +19,8 @@ void SourceReader::SeekLine(std::uint32_t line_num) {
 }
 
 std::string_view SourceReader::ReadLine(std::uint32_t line_num) {
+  // check if 'line_num' is invalid
+  if (line_num > total_lines_) return {};
   // try to find in buffer
   auto it = lines_.find(line_num);
   if (it != lines_.end()) {
