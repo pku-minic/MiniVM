@@ -30,6 +30,7 @@ xstl::ArgParser GetArgp() {
                          "");
   argp.AddOption<bool>("dump-gopher", "dg", "dump Gopher to output",
                        false);
+  // TODO: implement this option
   argp.AddOption<bool>("dump-bytecode", "db", "dump bytecode to output",
                        false);
   return argp;
@@ -66,7 +67,7 @@ void ParseArgument(xstl::ArgParser &argp, int argc, const char *argv[]) {
 optional<VMOpr> RunEeyore(xstl::ArgParser &argp, string_view file,
                           ostream &os) {
   SymbolPool symbols;
-  VMInstContainer cont(symbols);
+  VMInstContainer cont(symbols, file);
   // parse input file
   if (!ParseEeyore(file, cont)) return {};
   if (argp.GetValue<bool>("dump-gopher")) {
@@ -82,7 +83,7 @@ optional<VMOpr> RunEeyore(xstl::ArgParser &argp, string_view file,
 optional<VMOpr> RunTigger(xstl::ArgParser &argp, string_view file,
                           ostream &os) {
   SymbolPool symbols;
-  VMInstContainer cont(symbols);
+  VMInstContainer cont(symbols, file);
   // parse input file
   if (!ParseTigger(file, cont)) return {};
   if (argp.GetValue<bool>("dump-gopher")) {
