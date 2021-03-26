@@ -21,6 +21,8 @@ class MiniDebugger : public DebuggerBase {
     InitDebuggerCommands();
     RegisterDebuggerCallback();
     InitSigIntHandler();
+    // enable trap mode
+    vm_.cont().ToggleTrapMode(true);
   }
 
  private:
