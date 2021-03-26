@@ -9,12 +9,14 @@
 #include "debugger/debugger.h"
 #include "vm/vm.h"
 #include "debugger/minidbg/minieval.h"
+#include "debugger/minidbg/srcreader.h"
 
 // debugger for MiniVM
 class MiniDebugger : public DebuggerBase {
  public:
   MiniDebugger(VM &vm)
-      : DebuggerBase("minidbg> "), vm_(vm), eval_(vm), next_id_(0),
+      : DebuggerBase("minidbg> "), vm_(vm), eval_(vm),
+        src_reader_(vm.cont().src_file()), next_id_(0),
         layout_fmt_(LayoutFormat::Source) {
     InitDebuggerCommands();
     RegisterDebuggerCallback();
@@ -112,6 +114,8 @@ class MiniDebugger : public DebuggerBase {
   VM &vm_;
   // expression evaluator
   MiniEvaluator eval_;
+  // source file reader
+  SourceReader src_reader_;
   // next breakpoint/watchpoint id
   std::uint32_t next_id_;
   // all breakpoints
