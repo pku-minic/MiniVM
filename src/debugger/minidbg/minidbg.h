@@ -20,6 +20,7 @@ class MiniDebugger : public DebuggerBase {
         src_reader_(vm.cont().src_file()) {
     InitDebuggerCommands();
     RegisterDebuggerCallback();
+    InitSigIntHandler();
   }
 
  private:
@@ -50,6 +51,8 @@ class MiniDebugger : public DebuggerBase {
   void InitDebuggerCommands();
   // register debugger callback for current instance
   void RegisterDebuggerCallback();
+  // initialize 'sigint' handler
+  void InitSigIntHandler();
   // debugger callback
   bool DebuggerCallback();
   // log error message to stdout

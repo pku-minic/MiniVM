@@ -157,6 +157,10 @@ void MiniDebugger::RegisterDebuggerCallback() {
   static_cast<void>(ret);
 }
 
+void MiniDebugger::InitSigIntHandler() {
+  set_sigint_handler([this] { vm_.cont().ToggleTrapMode(true); });
+}
+
 bool MiniDebugger::DebuggerCallback() {
   // enter command line interface
   EnterCLI();
