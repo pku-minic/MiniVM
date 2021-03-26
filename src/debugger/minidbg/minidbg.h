@@ -15,9 +15,9 @@
 class MiniDebugger : public DebuggerBase {
  public:
   MiniDebugger(VM &vm)
-      : DebuggerBase("minidbg> "), vm_(vm), eval_(vm),
-        src_reader_(vm.cont().src_file()), next_id_(0),
-        layout_fmt_(LayoutFormat::Source) {
+      : DebuggerBase("minidbg> "), vm_(vm), eval_(vm), next_id_(0),
+        layout_fmt_(LayoutFormat::Source),
+        src_reader_(vm.cont().src_file()) {
     InitDebuggerCommands();
     RegisterDebuggerCallback();
   }
@@ -81,6 +81,7 @@ class MiniDebugger : public DebuggerBase {
   // show disassembly near current PC
   void ShowDisasm();
   // show disassembly
+  // parameter 'n' may represent the number of instructions or lines
   void ShowDisasm(VMAddr pc, std::size_t n);
 
   // create a new breakpoint ('break [POS]')
@@ -114,8 +115,6 @@ class MiniDebugger : public DebuggerBase {
   VM &vm_;
   // expression evaluator
   MiniEvaluator eval_;
-  // source file reader
-  SourceReader src_reader_;
   // next breakpoint/watchpoint id
   std::uint32_t next_id_;
   // all breakpoints
@@ -126,6 +125,8 @@ class MiniDebugger : public DebuggerBase {
   std::unordered_map<std::uint32_t, WatchInfo> watches_;
   // layout format
   LayoutFormat layout_fmt_;
+  // source code reader
+  SourceReader src_reader_;
 };
 
 #endif  // MINIVM_DEBUGGER_MINIDBG_MINIDBG_H_
