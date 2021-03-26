@@ -27,6 +27,7 @@ class ExprEvaluatorBase {
   static_assert(std::is_integral_v<ValType>, "integral required");
 
   ExprEvaluatorBase() : next_id_(0) {}
+  virtual ~ExprEvaluatorBase() = default;
 
   // evaluate expression with record
   std::optional<ValType> Eval(std::string_view expr) {
