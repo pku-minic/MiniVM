@@ -6,6 +6,7 @@
 #include <istream>
 #include <string>
 #include <map>
+#include <unordered_map>
 
 // command line interface of debugger
 class DebuggerBase {

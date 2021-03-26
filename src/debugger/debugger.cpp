@@ -21,7 +21,7 @@ void DebuggerBase::InitCommands() {
   // register 'quit' command
   RegisterCommand(
       "quit", "q",
-      [this](std::istream &is) {
+      [](std::istream &is) {
         std::exit(0);
         return false;
       },
