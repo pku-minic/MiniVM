@@ -11,6 +11,40 @@
 #include "readline/readline.h"
 #include "readline/history.h"
 
+// definition of all static members
+volatile std::sig_atomic_t DebuggerBase::sig_registered_ = 0;
+volatile std::sig_atomic_t DebuggerBase::sig_disabled_ = 0;
+std::unordered_set<DebuggerBase *> DebuggerBase::dbg_insts_;
+
+void DebuggerBase::SignalHandler(int sig) {
+  assert(sig == SIGINT);
+  if (sig_disabled_) return;
+  // call all 'sigint' handlers
+  for (const auto &inst : DebuggerBase::dbg_insts_) {
+    if (inst->sigint_handler_) inst->sigint_handler_();
+  }
+}
+
+void DebuggerBase::InitSignalHandler() {
+  // check if is registered
+  if (sig_registered_) return;
+  sig_registered_ = 1;
+  // register signal handler
+  std::signal(SIGINT, SignalHandler);
+}
+
+void DebuggerBase::RegisterDebugger() {
+  sig_disabled_ = 1;
+  dbg_insts_.insert(this);
+  sig_disabled_ = 0;
+}
+
+void DebuggerBase::UnregisterDebugger() {
+  sig_disabled_ = 1;
+  dbg_insts_.erase(this);
+  sig_disabled_ = 0;
+}
+
 void DebuggerBase::InitCommands() {
   // register 'help' command
   RegisterCommand(
