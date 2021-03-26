@@ -1,18 +1,39 @@
 #include "debugger/minidbg/minidbg.h"
 
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <vector>
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <cctype>
 
-#include "xstl/guard.h"
-
 #include "front/token.h"
+#include "xstl/style.h"
 
+// create a new anonymous command handler
 #define CMD_HANDLER(func) [this](std::istream &is) { return func(is); }
 
 namespace {
+
+// instruction information (for disassembler)
+struct InstInfo {
+  bool        is_breakpoint;
+  VMAddr      addr;
+  std::string disasm;
+};
+
+// line information (for disassembler)
+struct LineInfo {
+  bool              is_breakpoint;
+  std::uint32_t     addr;   // line number
+  std::string_view  disasm;
+};
 
 // name of static registers
 const char *kRegNames[] = {TOKEN_REGISTERS(TOKEN_EXPAND_SECOND)};
@@ -30,6 +51,47 @@ const std::unordered_map<std::string_view, InfoItem> kInfoItems = {
     {"break", InfoItem::Break}, {"b", InfoItem::Break},
     {"watch", InfoItem::Watch}, {"w", InfoItem::Watch},
 };
+
+// print instructions to stdout
+template <typename Info, typename Addr>
+void PrintInst(const std::vector<Info> &info, Addr cur_addr) {
+  using namespace xstl;
+  assert(!info.empty());
+  // check if there is a breakpoint
+  bool print_bp = std::find_if(info.begin(), info.end(), [](const Info &i) {
+                    return i.is_breakpoint;
+                  }) != info.end();
+  // get maximum address
+  auto max_addr = std::max_element(info.begin(), info.end(),
+                                   [](const Info &l, const Info &r) {
+                                     return l.addr > r.addr;
+                                   })->addr;
+  auto addr_align = static_cast<int>(std::ceil(std::log(max_addr + 1)));
+  // print instruction info
+  for (const auto &[is_break, addr, disasm] : info) {
+    // print breakpoint info
+    if (print_bp) {
+      if (is_break) {
+        std::cout << style("D") << " B> ";
+      }
+      else {
+        std::cout << "    ";
+      }
+    }
+    // print current address
+    if (addr == cur_addr) {
+      std::cout << style("I") << std::hex << std::setw(addr_align)
+                << std::right << addr << style("R") << ":  ";
+    }
+    else {
+      std::cout << std::hex << std::setw(addr_align) << std::right
+                << addr << ":  ";
+    }
+    // print disassembly
+    std::cout << style("B") << disasm;
+    std::cout << std::endl;
+  }
+}
 
 }  // namespace
 
@@ -274,55 +336,59 @@ void MiniDebugger::PrintWatchInfo() {
 
 void MiniDebugger::ShowDisasm() {
   auto pc = vm_.pc();
-  std::size_t n = 10;
-  // calculate start pc
   if (layout_fmt_ == LayoutFormat::Asm) {
-    if (pc >= 2) pc -= 2;
+    pc = pc >= 2 ? pc - 2 : 0;
   }
   else {
     assert(layout_fmt_ == LayoutFormat::Source);
-    xstl::Guard guard([this] { LogError("source code unavaliable"); });
-    // get line number
-    if (auto line = vm_.cont().FindLineNum(pc)) {
-      // get the start pc
-      if (auto spc = vm_.cont().FindPC(*line >= 2 ? *line - 2 : *line)) {
-        // update start pc
-        pc = *spc;
-        guard.Invalidate();
-      }
-      else if (auto spc = vm_.cont().FindPC(*line)) {
-        // update start pc
-        pc = *spc;
-        guard.Invalidate();
-      }
+    // get line number of current PC
+    auto line = vm_.cont().FindLineNum(pc);
+    if (!line) {
+      return LogError("unable to determine the line number of current PC");
     }
+    // get start PC address
+    auto line_start = *line >= 2 ? *line - 2 : 0;
+    auto pc_start = vm_.cont().FindPC(line_start);
+    if (pc_start) pc = *pc_start;
   }
-  // show disassembly
-  ShowDisasm(pc, n);
+  ShowDisasm(pc, 10);
 }
 
 void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n) {
-  // TODO: highlighting!
   if (layout_fmt_ == LayoutFormat::Asm) {
-    // just shpw some bytecode
+    std::vector<InstInfo> info;
+    // add instructions to 'info'
     for (std::size_t i = 0; i < n; ++i) {
-      vm_.cont().Dump(std::cout, pc + i);
-      std::cout << std::endl;
+      VMAddr cur_pc = pc + i;
+      std::ostringstream oss;
+      vm_.cont().Dump(oss, cur_pc);
+      info.push_back({!!pc_bp_.count(cur_pc), cur_pc, oss.str()});
     }
+    // print instruction info list
+    PrintInst(info, vm_.pc());
   }
   else {
     assert(layout_fmt_ == LayoutFormat::Source);
-    // get line number
-    if (auto line_no = vm_.cont().FindLineNum(pc)) {
-      for (std::size_t i = 0; i < n; ++i) {
-        auto line = src_reader_.ReadLine(*line_no + i);
-        if (line.empty()) break;
-        std::cout << line << std::endl;
-      }
+    std::vector<LineInfo> info;
+    // get start line number of the pc & current line number
+    auto line_no = vm_.cont().FindLineNum(pc);
+    auto cur_line_no = vm_.cont().FindLineNum(vm_.pc());
+    if (!line_no || !cur_line_no) {
+      return LogError("source code unavaliable");
     }
-    else {
-      LogError("source code unavaliable");
+    // add lines to 'info'
+    for (std::size_t i = 0; i < n; ++i) {
+      // read the current line
+      std::uint32_t cur_no = *line_no + i;
+      auto line = src_reader_.ReadLine(cur_no);
+      if (line.empty()) break;
+      // check if there is a breakpoint
+      auto cur_pc = vm_.cont().FindPC(cur_no);
+      auto is_break = cur_pc && pc_bp_.count(*cur_pc);
+      info.push_back({is_break, cur_no, line});
     }
+    // print line info list
+    PrintInst(info, *cur_line_no);
   }
 }
 
@@ -330,7 +396,7 @@ bool MiniDebugger::CreateBreak(std::istream &is) {
   // get address of breakpoint
   auto addr = is.eof() ? vm_.pc() : ReadPosition(is);
   // check for duplicates
-  if (pc_bp_.find(*addr) != pc_bp_.end()) {
+  if (pc_bp_.count(*addr)) {
     LogError("there is already a breakpoint at the specific POS");
     return false;
   }
@@ -526,13 +592,13 @@ bool MiniDebugger::DisasmMem(std::istream &is) {
       LogError("invalid count 'N'");
       return false;
     }
-    auto pc = ReadExpression(is, false);
-    if (!pc) {
-      LogError("invalid 'EXPR'");
+    auto pos = ReadPosition(is);
+    if (!pos) {
+      LogError("invalid 'POS'");
       return false;
     }
     // show disassembly
-    ShowDisasm(*pc, n);
+    ShowDisasm(*pos, n);
   }
   return false;
 }
