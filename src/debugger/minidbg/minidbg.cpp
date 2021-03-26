@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <cctype>
 
+#include "xstl/guard.h"
+
 #include "front/token.h"
 
 #define CMD_HANDLER(func) [this](std::istream &is) { return func(is); }
@@ -273,18 +275,55 @@ void MiniDebugger::PrintWatchInfo() {
 void MiniDebugger::ShowDisasm() {
   auto pc = vm_.pc();
   std::size_t n = 10;
+  // calculate start pc
   if (layout_fmt_ == LayoutFormat::Asm) {
     if (pc >= 2) pc -= 2;
   }
   else {
     assert(layout_fmt_ == LayoutFormat::Source);
-    // TODO
+    xstl::Guard guard([this] { LogError("source code unavaliable"); });
+    // get line number
+    if (auto line = vm_.cont().FindLineNum(pc)) {
+      // get the start pc
+      if (auto spc = vm_.cont().FindPC(*line >= 2 ? *line - 2 : *line)) {
+        // update start pc
+        pc = *spc;
+        guard.Invalidate();
+      }
+      else if (auto spc = vm_.cont().FindPC(*line)) {
+        // update start pc
+        pc = *spc;
+        guard.Invalidate();
+      }
+    }
   }
+  // show disassembly
   ShowDisasm(pc, n);
 }
 
 void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n) {
-  // TODO
+  // TODO: highlighting!
+  if (layout_fmt_ == LayoutFormat::Asm) {
+    // just shpw some bytecode
+    for (std::size_t i = 0; i < n; ++i) {
+      vm_.cont().Dump(std::cout, pc + i);
+      std::cout << std::endl;
+    }
+  }
+  else {
+    assert(layout_fmt_ == LayoutFormat::Source);
+    // get line number
+    if (auto line_no = vm_.cont().FindLineNum(pc)) {
+      for (std::size_t i = 0; i < n; ++i) {
+        auto line = src_reader_.ReadLine(*line_no + i);
+        if (line.empty()) break;
+        std::cout << line << std::endl;
+      }
+    }
+    else {
+      LogError("source code unavaliable");
+    }
+  }
 }
 
 bool MiniDebugger::CreateBreak(std::istream &is) {
@@ -311,9 +350,13 @@ bool MiniDebugger::CreateWatch(std::istream &is) {
   auto val = ReadExpression(is);
   if (!val) return false;
   // store watchpoint info
-  auto succ = watches_.insert({next_id_++, {id, *val, 0}}).second;
+  auto succ =
+      watches_
+          .insert({next_id_++, {id, static_cast<std::uint32_t>(*val), 0}})
+          .second;
   assert(succ);
   static_cast<void>(succ);
+  return false;
 }
 
 bool MiniDebugger::DeletePoint(std::istream &is) {
