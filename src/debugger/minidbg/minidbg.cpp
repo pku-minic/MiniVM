@@ -281,11 +281,9 @@ void MiniDebugger::PrintRegInfo() {
   // check if in Tigger mode
   const auto &[env, _] = vm_.env_addr_pair();
   auto id = vm_.sym_pool().FindId(kVMFrame);
-  assert(id);
-  if (env->find(*id) != env->end()) {
-    std::cout << "WARNING: MiniVM may not currently run in Tigger mode, "
-                 "static registers should not be used."
-              << std::endl << std::endl;
+  if (!id || env->find(*id) != env->end()) {
+    return LogError("MiniVM may not currently run in Tigger mode, "
+                    "static registers should not be used.");
   }
   // print PC
   std::cout << "current PC address: " << vm_.pc() << std::endl;
