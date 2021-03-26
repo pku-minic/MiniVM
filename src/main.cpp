@@ -14,6 +14,7 @@
 #include "front/wrapper.h"
 #include "vm/vm.h"
 #include "vmconf.h"
+#include "debugger/minidbg/minidbg.h"
 
 using namespace std;
 
@@ -64,36 +65,38 @@ void ParseArgument(xstl::ArgParser &argp, int argc, const char *argv[]) {
   }
 }
 
-optional<VMOpr> RunEeyore(xstl::ArgParser &argp, string_view file,
-                          ostream &os) {
+optional<VMOpr> RunVM(xstl::ArgParser &argp, string_view file, ostream &os,
+                      Parser parser, VMInit vm_init) {
   SymbolPool symbols;
   VMInstContainer cont(symbols, file);
   // parse input file
-  if (!ParseEeyore(file, cont)) return {};
+  if (!parser(file, cont)) return {};
   if (argp.GetValue<bool>("dump-gopher")) {
     cont.Dump(os);
     return 0;
   }
   // run MiniVM
   VM vm(symbols, cont);
-  InitEeyoreVM(vm);
-  return vm.Run();
+  vm_init(vm);
+  if (argp.GetValue<bool>("debug")) {
+    // debug mode
+    MiniDebugger debugger(vm);
+    PrintVersion();
+    return vm.Run();
+  }
+  else {
+    return vm.Run();
+  }
+}
+
+optional<VMOpr> RunEeyore(xstl::ArgParser &argp, string_view file,
+                          ostream &os) {
+  return RunVM(argp, file, os, ParseEeyore, InitEeyoreVM);
 }
 
 optional<VMOpr> RunTigger(xstl::ArgParser &argp, string_view file,
                           ostream &os) {
-  SymbolPool symbols;
-  VMInstContainer cont(symbols, file);
-  // parse input file
-  if (!ParseTigger(file, cont)) return {};
-  if (argp.GetValue<bool>("dump-gopher")) {
-    cont.Dump(os);
-    return 0;
-  }
-  // run MiniVM
-  VM vm(symbols, cont);
-  InitTiggerVM(vm);
-  return vm.Run();
+  return RunVM(argp, file, os, ParseTigger, InitTiggerVM);
 }
 
 }  // namespace
