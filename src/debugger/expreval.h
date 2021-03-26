@@ -279,7 +279,8 @@ class ExprEvaluatorBase {
         "+",  "-",  "*",  "/", "%",  "&",  "|", "~",  "^", "<<",
         ">>", "&&", "||", "!", "==", "!=", "<", "<=", ">", ">=",
     };
-    for (int i = 0; i < sizeof(kOpList) / sizeof(std::string_view); ++i) {
+    for (std::size_t i = 0; i < sizeof(kOpList) / sizeof(std::string_view);
+         ++i) {
       if (kOpList[i] == op) {
         op_val_ = static_cast<Operator>(i);
         return cur_token_ = Token::Operator;

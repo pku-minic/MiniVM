@@ -110,7 +110,7 @@ bool DebuggerBase::ShowHelpInfo(std::istream &is) {
       if (!info.abbr.empty()) cmd += '/' + info.abbr;
       std::cout << "  " << std::setw(cmd_len + 2) << std::setfill(' ')
                 << cmd << std::setw(args_len + 2) << info.args;
-      std::cout << "--- " << info.description << std::endl;
+      std::cout << " --- " << info.description << std::endl;
     }
   }
   else {
@@ -166,7 +166,7 @@ void DebuggerBase::RegisterCommand(std::string_view cmd,
   // insert to abbreviation map
   if (!abbr.empty()) {
     const auto &it = ret.first;
-    auto succ = abbrs_.insert({it->first, &it->second}).second;
+    auto succ = abbrs_.insert({it->second.abbr, &it->second}).second;
     assert(succ);
     static_cast<void>(succ);
   }
