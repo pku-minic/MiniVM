@@ -330,9 +330,10 @@ void VMInstContainer::ToggleBreakpoint(VMAddr pc, bool enable) {
   else {
     // remove breakpoint
     auto it = breakpoints_.find(pc);
-    assert(it != breakpoints_.end());
-    insts_[pc].op = it->second;
-    breakpoints_.erase(it);
+    if (it != breakpoints_.end()) {
+      insts_[pc].op = it->second;
+      breakpoints_.erase(it);
+    }
   }
 }
 
