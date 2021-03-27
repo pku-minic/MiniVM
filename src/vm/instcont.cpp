@@ -79,6 +79,7 @@ void VMInstContainer::Reset(std::string_view src_file) {
   global_insts_.clear();
   breakpoints_.clear();
   trap_mode_ = false;
+  step_mode_ = 0;
   // insert jump instruction to entry point
   cur_env_ = &local_env_;
   LogRelatedInsts(kVMEntry);
@@ -390,6 +391,17 @@ std::optional<std::uint32_t> VMInstContainer::FindLineNum(
   return it->second;
 }
 
-const VMInst *VMInstContainer::GetInst(VMAddr pc) const {
-  return trap_mode_ ? &kBreakInst : insts_.data() + pc;
+const VMInst *VMInstContainer::GetInst(VMAddr pc) {
+  if (trap_mode_) {
+    // trap mode
+    return &kBreakInst;
+  }
+  else if (step_mode_ && !--step_mode_) {
+    // step mode
+    return &kBreakInst;
+  }
+  else {
+    // normal mode
+    return insts_.data() + pc;
+  }
 }
