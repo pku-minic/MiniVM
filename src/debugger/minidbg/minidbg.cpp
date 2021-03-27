@@ -64,9 +64,10 @@ void PrintInst(const std::vector<Info> &info, Addr cur_addr) {
   // get maximum address
   auto max_addr = std::max_element(info.begin(), info.end(),
                                    [](const Info &l, const Info &r) {
-                                     return l.addr > r.addr;
+                                     return l.addr < r.addr;
                                    })->addr;
-  auto addr_align = static_cast<int>(std::ceil(std::log(max_addr + 1)));
+  auto addr_padd =
+      static_cast<int>(std::ceil(std::log10(max_addr + 1))) + 2;
   // print instruction info
   for (const auto &[is_break, addr, disasm] : info) {
     // print breakpoint info
@@ -80,12 +81,11 @@ void PrintInst(const std::vector<Info> &info, Addr cur_addr) {
     }
     // print current address
     if (addr == cur_addr) {
-      std::cout << style("I") << std::hex << std::setw(addr_align)
-                << std::right << addr << style("R") << ":  ";
+      std::cout << style("I") << std::setw(addr_padd) << std::right << addr
+                << style("R") << ":  ";
     }
     else {
-      std::cout << std::hex << std::setw(addr_align) << std::right
-                << addr << ":  ";
+      std::cout << std::setw(addr_padd) << std::right << addr << ":  ";
     }
     // print disassembly
     std::cout << style("B") << disasm;
@@ -336,7 +336,7 @@ void MiniDebugger::PrintWatchInfo() {
   }
 }
 
-void MiniDebugger::ShowDisasm() {
+void MiniDebugger::ShowDisasm(bool silent) {
   auto pc = vm_.pc();
   if (layout_fmt_ == LayoutFormat::Asm) {
     pc = pc >= 2 ? pc - 2 : 0;
@@ -346,17 +346,20 @@ void MiniDebugger::ShowDisasm() {
     // get line number of current PC
     auto line = vm_.cont().FindLineNum(pc);
     if (!line) {
-      return LogError("unable to determine the line number of current PC");
+      if (!silent) {
+        LogError("unable to determine the line number of current PC");
+      }
+      return;
     }
     // get start PC address
     auto line_start = *line >= 2 ? *line - 2 : 0;
     auto pc_start = vm_.cont().FindPC(line_start);
     if (pc_start) pc = *pc_start;
   }
-  ShowDisasm(pc, 10);
+  ShowDisasm(pc, 10, silent);
 }
 
-void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n) {
+void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n, bool silent) {
   if (layout_fmt_ == LayoutFormat::Asm) {
     std::vector<InstInfo> info;
     // add instructions to 'info'
@@ -376,7 +379,8 @@ void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n) {
     auto line_no = vm_.cont().FindLineNum(pc);
     auto cur_line_no = vm_.cont().FindLineNum(vm_.pc());
     if (!line_no || !cur_line_no) {
-      return LogError("source code unavaliable");
+      if (!silent) LogError("source code unavaliable");
+      return;
     }
     // add lines to 'info'
     for (std::size_t i = 0; i < n; ++i) {
@@ -584,7 +588,7 @@ bool MiniDebugger::SetLayout(std::istream &is) {
 bool MiniDebugger::DisasmMem(std::istream &is) {
   // no parameters
   if (is.eof()) {
-    ShowDisasm();
+    ShowDisasm(false);
   }
   else {
     // get parameters
@@ -600,7 +604,7 @@ bool MiniDebugger::DisasmMem(std::istream &is) {
       return false;
     }
     // show disassembly
-    ShowDisasm(*pos, n);
+    ShowDisasm(*pos, n, false);
   }
   return false;
 }
