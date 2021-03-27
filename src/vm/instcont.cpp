@@ -404,13 +404,10 @@ std::optional<std::uint32_t> VMInstContainer::FindLineNum(
 
 const VMInst *VMInstContainer::GetInst(VMAddr pc) {
   auto inst = insts_.data() + pc;
-  if (trap_mode_) {
-    // trap mode
-    return &kBreakInst;
-  }
-  else if (!step_counters_.empty()) {
-    // handle step counters
-    bool cleanup = false, break_flag = false;
+  bool break_flag = trap_mode_;
+  // handle step counters
+  if (!step_counters_.empty()) {
+    bool cleanup = false;
     auto size = step_counters_.size();
     for (std::size_t i = 0; i < size; ++i) {
       auto &&[n, callback] = step_counters_[i];
@@ -436,10 +433,6 @@ const VMInst *VMInstContainer::GetInst(VMAddr pc) {
                          [](const auto &p) { return !p.first; }),
           step_counters_.end());
     }
-    return break_flag ? &kBreakInst : inst;
   }
-  else {
-    // normal mode
-    return inst;
-  }
+  return break_flag ? &kBreakInst : inst;
 }
