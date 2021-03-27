@@ -338,7 +338,6 @@ void VMInstContainer::ToggleBreakpoint(VMAddr pc, bool enable) {
 }
 
 void VMInstContainer::AddStepCounter(std::size_t n, StepCallback callback) {
-  assert(n > 0);
   step_counters_.push_back({n, callback});
 }
 
@@ -427,10 +426,13 @@ const VMInst *VMInstContainer::GetInst(VMAddr pc) {
       }
     }
     // remove all outdated step counters
+    // but not remove newly added zero step counters
     if (cleanup) {
+      std::size_t i = 0;
       step_counters_.erase(
-          std::remove_if(step_counters_.begin(), step_counters_.end(),
-                         [](const auto &p) { return !p.first; }),
+          std::remove_if(
+              step_counters_.begin(), step_counters_.end(),
+              [&i, size](const auto &p) { return i++ < size && !p.first; }),
           step_counters_.end());
     }
   }
