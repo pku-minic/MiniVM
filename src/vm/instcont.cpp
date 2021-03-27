@@ -431,7 +431,8 @@ const VMInst *VMInstContainer::GetInst(VMAddr pc) {
     if (cleanup) {
       step_counters_.erase(
           std::remove_if(step_counters_.begin(), step_counters_.end(),
-                         [](const auto &p) { return !p.first; }));
+                         [](const auto &p) { return !p.first; }),
+          step_counters_.end());
     }
     return break_flag ? &kBreakInst : inst;
   }
