@@ -259,8 +259,8 @@ void MiniDebugger::CheckBreakpoint() {
   if (auto it = pc_bp_.find(cur_pc); it != pc_bp_.end()) {
     // toggle breakpoint
     cont.ToggleBreakpoint(cur_pc, false);
-    cont.AddStepCounter(1, [cur_pc](VMInstContainer &cont) {
-      cont.ToggleBreakpoint(cur_pc, true);
+    cont.AddStepCounter(1, [this, cur_pc](VMInstContainer &cont) {
+      if (pc_bp_.count(cur_pc)) cont.ToggleBreakpoint(cur_pc, true);
     });
     // update hit counter
     ++it->second->hit_count;
