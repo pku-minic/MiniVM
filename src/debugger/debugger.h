@@ -45,6 +45,7 @@ class DebuggerBase {
  private:
   // command line information
   struct CmdInfo {
+    std::string_view name;
     std::string abbr;
     CmdHandler handler;
     std::string args;
