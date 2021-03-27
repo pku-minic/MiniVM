@@ -411,7 +411,9 @@ const VMInst *VMInstContainer::GetInst(VMAddr pc) {
   else if (!step_counters_.empty()) {
     // handle step counters
     bool cleanup = false, break_flag = false;
-    for (auto &&[n, callback] : step_counters_) {
+    auto size = step_counters_.size();
+    for (std::size_t i = 0; i < size; ++i) {
+      auto &&[n, callback] = step_counters_[i];
       if (!n) {
         cleanup = true;
         // call the callback, or return 'Break' instruction
