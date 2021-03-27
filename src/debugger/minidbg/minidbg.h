@@ -72,6 +72,10 @@ class MiniDebugger : public DebuggerBase {
   // delete the specific watchpoint
   // returns false if watchpoint not found
   bool DeleteWatch(std::uint32_t id);
+  // check breakpoint status when callback has been called
+  void CheckBreakpoint();
+  // check watchpoint status
+  void CheckWatchpoint();
   // print operand stack info
   void PrintStackInfo();
   // print environment info

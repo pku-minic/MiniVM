@@ -81,11 +81,12 @@ void PrintInst(const std::vector<Info> &info, Addr cur_addr) {
     }
     // print current address
     if (addr == cur_addr) {
-      std::cout << style("I") << std::setw(addr_padd) << std::right << addr
-                << style("R") << ":  ";
+      std::cout << style("I") << std::setw(addr_padd) << std::setfill(' ')
+                << std::right << addr << style("R") << ":  ";
     }
     else {
-      std::cout << std::setw(addr_padd) << std::right << addr << ":  ";
+      std::cout << std::setw(addr_padd) << std::setfill(' ') << std::right
+                << addr << ":  ";
     }
     // print disassembly
     std::cout << style("B") << disasm;
@@ -162,6 +163,8 @@ void MiniDebugger::InitSigIntHandler() {
 }
 
 bool MiniDebugger::DebuggerCallback() {
+  // check breakpoint status
+  CheckBreakpoint();
   // show disassembly
   ShowDisasm(true);
   // enter command line interface
@@ -249,6 +252,32 @@ bool MiniDebugger::DeleteWatch(std::uint32_t id) {
   return true;
 }
 
+void MiniDebugger::CheckBreakpoint() {
+  auto cur_pc = vm_.pc();
+  auto &cont = vm_.cont();
+  // check if breakpoint is hit
+  if (auto it = pc_bp_.find(cur_pc); it != pc_bp_.end()) {
+    // toggle breakpoint
+    cont.ToggleBreakpoint(cur_pc, false);
+    cont.AddStepCounter(1, [cur_pc](VMInstContainer &cont) {
+      cont.ToggleBreakpoint(cur_pc, true);
+    });
+    // update hit counter
+    ++it->second->hit_count;
+    // print PC address
+    std::cout << "breakpoint hit, pc = " << cur_pc;
+    // try to print line number
+    if (auto line = cont.FindLineNum(cur_pc)) {
+      std::cout << ", at line " << *line;
+    }
+    std::cout << std::endl;
+  }
+}
+
+void MiniDebugger::CheckWatchpoint() {
+  // TODO
+}
+
 void MiniDebugger::PrintStackInfo() {
   const auto &oprs = vm_.oprs();
   std::cout << "operand stack size: " << oprs.size() << std::endl;
@@ -314,10 +343,8 @@ void MiniDebugger::PrintBreakInfo() {
   else {
     std::cout << "number of breakpoints: " << breaks_.size() << std::endl;
     for (const auto &[id, info] : breaks_) {
-      std::cout << "  breakpoint #" << id << ": pc = 0x" << std::hex
-                << std::setw(8) << std::setfill('0') << info.addr
-                << std::dec << ", hit_count = " << info.hit_count
-                << std::endl;
+      std::cout << "  breakpoint #" << id << ": pc = " << info.addr
+                << ", hit_count = " << info.hit_count << std::endl;
     }
   }
 }
@@ -439,8 +466,8 @@ bool MiniDebugger::DeletePoint(std::istream &is) {
     std::cout << "are you sure to delete all "
                  "breakpoints & watchpoints? [y/n] ";
     std::string line;
-    if (!std::getline(std::cin, line) || line.size() != 1 ||
-        std::tolower(line[0]) != 'y') {
+    std::cin >> line;
+    if (!std::cin || line.size() != 1 || std::tolower(line[0]) != 'y') {
       return false;
     }
     // delete all breakpoints
@@ -497,7 +524,7 @@ bool MiniDebugger::StepInst(std::istream &is) {
     }
   }
   // enable step mode
-  vm_.cont().ToggleStepMode(n);
+  vm_.cont().AddStepCounter(n);
   return true;
 }
 
@@ -519,7 +546,10 @@ bool MiniDebugger::PrintExpr(std::istream &is) {
   else {
     // evaluate expression
     id = eval_.next_id();
-    if (!(value = ReadExpression(is))) return false;
+    if (!(value = ReadExpression(is))) {
+      LogError("invalid expression");
+      return false;
+    }
   }
   // print result
   std::cout << "$" << id << " = " << *value << std::endl;
@@ -543,6 +573,7 @@ bool MiniDebugger::ExamineMem(std::istream &is) {
     // print address
     std::cout << std::hex << std::setfill('0') << std::setw(8) << addr;
     // get pointer of current unit
+    // TODO: boundary check?
     auto ptr = reinterpret_cast<char *>(vm_.mem_pool()->GetAddress(addr));
     addr += 4;
     // print contents
