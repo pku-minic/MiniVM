@@ -74,6 +74,11 @@ class VMInstContainer {
   // in trap mode, when MiniVM tries to fetch instructions from
   // the container, a 'Break' instruction will always be returned
   void ToggleTrapMode(bool enable) { trap_mode_ = enable; }
+  // enable/disable step mode
+  // in step mode, MiniVM can fetch 'n' normal instructions,
+  // after that, a 'Break' instruction will be returned
+  // set 'n' to zero to disable step mode
+  void ToggleStepMode(std::size_t n) { step_mode_ = n ? n + 1 : 0; }
   // dump the specific instruction
   bool Dump(std::ostream &os, VMAddr pc) const;
   // dump all stored instructions
@@ -90,7 +95,7 @@ class VMInstContainer {
   // instruction fetcher, for MiniVM instances
   //
   // get pointer of the specific instruction
-  const VMInst *GetInst(VMAddr pc) const;
+  const VMInst *GetInst(VMAddr pc);
 
  private:
   struct BackfillInfo {
@@ -140,6 +145,9 @@ class VMInstContainer {
   std::unordered_map<VMAddr, std::uint32_t> breakpoints_;
   // whether the container is in trap mode
   bool trap_mode_;
+  // whether the container is in step mode
+  // and the number of steps remaining
+  std::size_t step_mode_;
 };
 
 #endif  // MINIVM_VM_INSTCONT_H_
