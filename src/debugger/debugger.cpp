@@ -118,6 +118,7 @@ bool DebuggerBase::ShowHelpInfo(std::istream &is) {
     std::string cmd;
     is >> cmd;
     if (auto info = GetCommandInfo(cmd)) {
+      cmd = info->name;
       if (!info->abbr.empty()) cmd += '/' + info->abbr;
       std::cout << "Syntax: " << cmd << " " << info->args << std::endl;
       std::cout << "  " << info->details << std::endl;
@@ -158,10 +159,11 @@ void DebuggerBase::RegisterCommand(std::string_view cmd,
                                    std::string_view args,
                                    std::string_view description,
                                    std::string_view details) {
-  CmdInfo info = {std::string(abbr), handler, std::string(args),
+  CmdInfo info = {{}, std::string(abbr), handler, std::string(args),
                   std::string(description), std::string(details)};
   // insert to command map
   auto ret = cmds_.insert({std::string(cmd), std::move(info)});
+  ret.first->second.name = ret.first->first;
   assert(ret.second);
   // insert to abbreviation map
   if (!abbr.empty()) {
