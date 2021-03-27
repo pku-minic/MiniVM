@@ -18,6 +18,9 @@
 // container for storing VM instructions
 class VMInstContainer {
  public:
+  // callback for step counters
+  using StepCallback = std::function<void(VMInstContainer &)>;
+
   VMInstContainer(SymbolPool &sym_pool, std::string_view src_file)
       : sym_pool_(sym_pool) {
     Reset(src_file);
@@ -74,11 +77,13 @@ class VMInstContainer {
   // in trap mode, when MiniVM tries to fetch instructions from
   // the container, a 'Break' instruction will always be returned
   void ToggleTrapMode(bool enable) { trap_mode_ = enable; }
-  // enable/disable step mode
-  // in step mode, MiniVM can fetch 'n' normal instructions,
-  // after that, a 'Break' instruction will be returned
-  // set 'n' to zero to disable step mode
-  void ToggleStepMode(std::size_t n) { step_mode_ = n ? n + 1 : 0; }
+  // add a new step counter for stepping debugging
+  // in step mode, MiniVM can fetch 'n' (n > 0) normal instructions,
+  // after that, a 'Break' instruction will be returned,
+  // and the callback will be called if it's not null
+  void AddStepCounter(std::size_t n, StepCallback callback);
+  // same as 'AddStepCounter' but no callback
+  void AddStepCounter(std::size_t n) { AddStepCounter(n, nullptr); }
   // dump the specific instruction
   bool Dump(std::ostream &os, VMAddr pc) const;
   // dump all stored instructions
@@ -145,9 +150,8 @@ class VMInstContainer {
   std::unordered_map<VMAddr, std::uint32_t> breakpoints_;
   // whether the container is in trap mode
   bool trap_mode_;
-  // whether the container is in step mode
-  // and the number of steps remaining
-  std::size_t step_mode_;
+  // step counters
+  std::vector<std::pair<std::size_t, StepCallback>> step_counters_;
 };
 
 #endif  // MINIVM_VM_INSTCONT_H_
