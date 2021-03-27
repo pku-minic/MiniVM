@@ -299,7 +299,7 @@ void MiniDebugger::CheckWatchpoints() {
   if (break_flag) vm_.cont().ToggleTrapMode(true);
   // update step counter
   if (!watches_.empty()) {
-    vm_.cont().AddStepCounter(1, [this](VMInstContainer &cont) {
+    vm_.cont().AddStepCounter(0, [this](VMInstContainer &cont) {
       CheckWatchpoints();
     });
   }
@@ -483,7 +483,7 @@ bool MiniDebugger::CreateWatch(std::istream &is) {
   static_cast<void>(succ);
   // create step counter for watchpoint updating
   if (watches_.size() == 1) {
-    vm_.cont().AddStepCounter(1, [this](VMInstContainer &cont) {
+    vm_.cont().AddStepCounter(0, [this](VMInstContainer &cont) {
       CheckWatchpoints();
     });
   }
