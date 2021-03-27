@@ -39,7 +39,7 @@ class MiniDebugger : public DebuggerBase {
     // expression record id (in 'ExprEvaluator')
     std::uint32_t record_id;
     // last value
-    std::uint32_t last_val;
+    VMOpr last_val;
     // hit count
     std::uint32_t hit_count;
   };
@@ -73,9 +73,9 @@ class MiniDebugger : public DebuggerBase {
   // returns false if watchpoint not found
   bool DeleteWatch(std::uint32_t id);
   // check breakpoint status when callback has been called
-  void CheckBreakpoint();
+  void CheckBreakpoints();
   // check watchpoint status
-  void CheckWatchpoint();
+  void CheckWatchpoints();
   // print operand stack info
   void PrintStackInfo();
   // print environment info
