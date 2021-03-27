@@ -43,7 +43,7 @@ void PrintVersion() {
   cout << "Eeyore/Tigger IR," << endl;
   cout << "which is designed for PKU compiler course.";
   cout << endl << endl;
-  cout << "Copyright (C) 2010-2020 MaxXing. License GPLv3.";
+  cout << "Copyright (C) 2010-2021 MaxXing. License GPLv3.";
   cout << endl;
 }
 
