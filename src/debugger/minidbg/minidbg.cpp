@@ -162,6 +162,8 @@ void MiniDebugger::InitSigIntHandler() {
 }
 
 bool MiniDebugger::DebuggerCallback() {
+  // show disassembly
+  ShowDisasm(true);
   // enter command line interface
   EnterCLI();
   // disable trap mode and continue
@@ -366,7 +368,7 @@ void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n, bool silent) {
     for (std::size_t i = 0; i < n; ++i) {
       VMAddr cur_pc = pc + i;
       std::ostringstream oss;
-      vm_.cont().Dump(oss, cur_pc);
+      if (!vm_.cont().Dump(oss, cur_pc)) break;
       info.push_back({!!pc_bp_.count(cur_pc), cur_pc, oss.str()});
     }
     // print instruction info list
@@ -485,7 +487,17 @@ bool MiniDebugger::StepLine(std::istream &is) {
 }
 
 bool MiniDebugger::StepInst(std::istream &is) {
-  // TODO
+  std::size_t n = 1;
+  if (!is.eof()) {
+    // n steps
+    is >> n;
+    if (!is) {
+      LogError("invalid step count");
+      return false;
+    }
+  }
+  // enable step mode
+  vm_.cont().ToggleStepMode(n);
   return true;
 }
 
