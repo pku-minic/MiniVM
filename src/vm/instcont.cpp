@@ -409,18 +409,25 @@ const VMInst *VMInstContainer::GetInst(VMAddr pc) {
   }
   else if (!step_counters_.empty()) {
     // handle step counters
-    bool break_flag = false;
+    bool cleanup = false, break_flag = false;
     for (auto &&[n, callback] : step_counters_) {
       if (!n) {
-        break_flag = true;
-        if (callback) callback(*this);
+        cleanup = true;
+        // call the callback, or return 'Break' instruction
+        if (callback) {
+          callback(*this);
+        }
+        else {
+          break_flag = true;
+        }
       }
       else {
+        // decrease the current step counter
         --n;
       }
     }
     // remove all outdated step counters
-    if (break_flag) {
+    if (cleanup) {
       step_counters_.erase(
           std::remove_if(step_counters_.begin(), step_counters_.end(),
                          [](const auto &p) { return !p.first; }));
