@@ -311,7 +311,7 @@ std::optional<VMOpr> VM::Run() {
         if (!it->second(*this)) return 0;
       }
     }
-    VM_NEXT(-1);
+    VM_NEXT(0);
   }
 
   // logical negation
