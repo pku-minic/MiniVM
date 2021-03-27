@@ -24,4 +24,4 @@ $ cmake .. && make -j8
 
 ## License
 
-Copyright (C) 2010-2020 MaxXing. License GPLv3.
+Copyright (C) 2010-2021 MaxXing. License GPLv3.
