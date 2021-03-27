@@ -78,9 +78,8 @@ class VMInstContainer {
   // the container, a 'Break' instruction will always be returned
   void ToggleTrapMode(bool enable) { trap_mode_ = enable; }
   // add a new step counter for stepping debugging
-  // in step mode, MiniVM can fetch 'n' (n > 0) normal instructions,
-  // after that, a 'Break' instruction will be returned,
-  // and the callback will be called if it's not null
+  // after next 'n' (n > 0) steps, MiniVM will be breaked
+  // if 'callback' is null, otherwise the callback will be called
   void AddStepCounter(std::size_t n, StepCallback callback);
   // same as 'AddStepCounter' but no callback
   void AddStepCounter(std::size_t n) { AddStepCounter(n, nullptr); }
