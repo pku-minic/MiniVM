@@ -1,6 +1,7 @@
 #include "vm/instcont.h"
 
 #include <iostream>
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 
@@ -79,7 +80,7 @@ void VMInstContainer::Reset(std::string_view src_file) {
   global_insts_.clear();
   breakpoints_.clear();
   trap_mode_ = false;
-  step_mode_ = 0;
+  step_counters_.clear();
   // insert jump instruction to entry point
   cur_env_ = &local_env_;
   LogRelatedInsts(kVMEntry);
@@ -335,9 +336,18 @@ void VMInstContainer::ToggleBreakpoint(VMAddr pc, bool enable) {
   }
 }
 
+void VMInstContainer::AddStepCounter(std::size_t n, StepCallback callback) {
+  assert(n > 0);
+  step_counters_.push_back({n, callback});
+}
+
 bool VMInstContainer::Dump(std::ostream &os, VMAddr pc) const {
   if (pc >= insts_.size()) return false;
-  const auto &inst = insts_[pc];
+  // get the actual instruction
+  auto inst = insts_[pc];
+  auto it = breakpoints_.find(pc);
+  if (it != breakpoints_.end()) inst.op = it->second;
+  // dump instruction
   os << kInstOpStr[static_cast<int>(inst.op)] << '\t';
   // NOTE: the order of 'case' statements is important
   switch (static_cast<InstOp>(inst.op)) {
@@ -392,16 +402,33 @@ std::optional<std::uint32_t> VMInstContainer::FindLineNum(
 }
 
 const VMInst *VMInstContainer::GetInst(VMAddr pc) {
+  auto inst = insts_.data() + pc;
   if (trap_mode_) {
     // trap mode
     return &kBreakInst;
   }
-  else if (step_mode_ && !--step_mode_) {
-    // step mode
-    return &kBreakInst;
+  else if (!step_counters_.empty()) {
+    // handle step counters
+    bool break_flag = false;
+    for (auto &&[n, callback] : step_counters_) {
+      if (!n) {
+        break_flag = true;
+        if (callback) callback(*this);
+      }
+      else {
+        --n;
+      }
+    }
+    // remove all outdated step counters
+    if (break_flag) {
+      step_counters_.erase(
+          std::remove_if(step_counters_.begin(), step_counters_.end(),
+                         [](const auto &p) { return !p.first; }));
+    }
+    return break_flag ? &kBreakInst : inst;
   }
   else {
     // normal mode
-    return insts_.data() + pc;
+    return inst;
   }
 }
