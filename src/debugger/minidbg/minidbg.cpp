@@ -69,6 +69,7 @@ void PrintInst(const std::vector<Info> &info, Addr cur_addr) {
   auto addr_padd =
       static_cast<int>(std::ceil(std::log10(max_addr + 1))) + 2;
   // print instruction info
+  std::cout << std::endl;
   for (const auto &[is_break, addr, disasm] : info) {
     // print breakpoint info
     if (print_bp) {
@@ -164,7 +165,7 @@ void MiniDebugger::InitSigIntHandler() {
 
 bool MiniDebugger::DebuggerCallback() {
   // check breakpoint status
-  CheckBreakpoint();
+  CheckBreakpoints();
   // show disassembly
   ShowDisasm(true);
   // enter command line interface
@@ -252,7 +253,7 @@ bool MiniDebugger::DeleteWatch(std::uint32_t id) {
   return true;
 }
 
-void MiniDebugger::CheckBreakpoint() {
+void MiniDebugger::CheckBreakpoints() {
   auto cur_pc = vm_.pc();
   auto &cont = vm_.cont();
   // check if breakpoint is hit
@@ -274,8 +275,34 @@ void MiniDebugger::CheckBreakpoint() {
   }
 }
 
-void MiniDebugger::CheckWatchpoint() {
-  // TODO
+void MiniDebugger::CheckWatchpoints() {
+  bool break_flag = false;
+  for (auto &&it : watches_) {
+    // get watchpoint info
+    auto &info = it.second;
+    // evaluate new value
+    auto val = eval_.Eval(info.record_id);
+    assert(val);
+    if (*val != info.last_val) {
+      break_flag = true;
+      // record change
+      std::cout << "watchpoint " << it.first << " hit ($"
+                << info.record_id << ")" << std::endl;
+      std::cout << "  old value: " << info.last_val << std::endl;
+      std::cout << "  new value: " << *val << std::endl;
+      // update watchpoint info
+      info.last_val = *val;
+      ++info.hit_count;
+    }
+  }
+  // break if there are any watchpoints changed
+  if (break_flag) vm_.cont().ToggleTrapMode(true);
+  // update step counter
+  if (!watches_.empty()) {
+    vm_.cont().AddStepCounter(1, [this](VMInstContainer &cont) {
+      CheckWatchpoints();
+    });
+  }
 }
 
 void MiniDebugger::PrintStackInfo() {
@@ -451,12 +478,15 @@ bool MiniDebugger::CreateWatch(std::istream &is) {
   auto val = ReadExpression(is);
   if (!val) return false;
   // store watchpoint info
-  auto succ =
-      watches_
-          .insert({next_id_++, {id, static_cast<std::uint32_t>(*val), 0}})
-          .second;
+  auto succ = watches_.insert({next_id_++, {id, *val, 0}}).second;
   assert(succ);
   static_cast<void>(succ);
+  // create step counter for watchpoint updating
+  if (watches_.size() == 1) {
+    vm_.cont().AddStepCounter(1, [this](VMInstContainer &cont) {
+      CheckWatchpoints();
+    });
+  }
   return false;
 }
 
