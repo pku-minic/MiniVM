@@ -82,7 +82,15 @@ optional<VMOpr> RunVM(xstl::ArgParser &argp, string_view file, ostream &os,
     // debug mode
     MiniDebugger debugger(vm);
     PrintVersion();
-    return vm.Run();
+    auto ret = vm.Run();
+    // print exit code
+    if (!ret) {
+      std::cout << "VM instance ended with an error" << std::endl;
+    }
+    else {
+      std::cout << "VM instance exited with code " << *ret << std::endl;
+    }
+    return ret;
   }
   else {
     return vm.Run();
