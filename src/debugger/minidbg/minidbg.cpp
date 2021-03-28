@@ -164,12 +164,18 @@ void MiniDebugger::InitSigIntHandler() {
 }
 
 bool MiniDebugger::DebuggerCallback() {
-  // check breakpoint status
-  CheckBreakpoints();
-  // show disassembly
-  ShowDisasm(true);
-  // enter command line interface
-  EnterCLI();
+  if (!vm_.cont().FindLineNum(vm_.pc())) {
+    // skip when line number unavailable
+    StepLineHandler({});
+  }
+  else {
+    // check breakpoint status
+    CheckBreakpoints();
+    // show disassembly
+    ShowDisasm(true);
+    // enter command line interface
+    EnterCLI();
+  }
   // disable trap mode and continue
   vm_.cont().ToggleTrapMode(false);
   return true;
@@ -503,11 +509,7 @@ bool MiniDebugger::CreateWatch(std::istream &is) {
   assert(succ);
   static_cast<void>(succ);
   // create step counter for watchpoint updating
-  if (watches_.size() == 1) {
-    vm_.cont().AddStepCounter(0, [this](VMInstContainer &cont) {
-      CheckWatchpoints();
-    });
-  }
+  if (watches_.size() == 1) CheckWatchpoints();
   return false;
 }
 
@@ -561,9 +563,7 @@ bool MiniDebugger::NextInst(std::istream &is) {
 
 bool MiniDebugger::StepLine(std::istream &is) {
   auto line = vm_.cont().FindLineNum(vm_.pc());
-  vm_.cont().AddStepCounter(0, [this, line](VMInstContainer &cont) {
-    StepLineHandler(line);
-  });
+  StepLineHandler(line);
   return true;
 }
 
