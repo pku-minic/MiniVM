@@ -80,7 +80,7 @@ void VMInstContainer::Reset(std::string_view src_file) {
   global_insts_.clear();
   breakpoints_.clear();
   trap_mode_ = false;
-  step_counters_.clear();
+  while (!step_counters_.empty()) step_counters_.pop();
   // insert jump instruction to entry point
   cur_env_ = &local_env_;
   LogRelatedInsts(kVMEntry);
@@ -338,7 +338,7 @@ void VMInstContainer::ToggleBreakpoint(VMAddr pc, bool enable) {
 }
 
 void VMInstContainer::AddStepCounter(std::size_t n, StepCallback callback) {
-  step_counters_.push_back({n, callback});
+  step_counters_.push({n, callback});
 }
 
 bool VMInstContainer::Dump(std::ostream &os, VMAddr pc) const {
@@ -403,15 +403,15 @@ std::optional<std::uint32_t> VMInstContainer::FindLineNum(
 
 const VMInst *VMInstContainer::GetInst(VMAddr pc) {
   auto inst = insts_.data() + pc;
-  bool break_flag = trap_mode_;
+  bool break_flag = false;
   // handle step counters
   if (!step_counters_.empty()) {
-    bool cleanup = false;
     auto size = step_counters_.size();
-    for (std::size_t i = 0; i < size; ++i) {
-      auto &&[n, callback] = step_counters_[i];
+    while (size--) {
+      auto &&[n, callback] = step_counters_.front();
+      bool discard = false;
       if (!n) {
-        cleanup = true;
+        discard = true;
         // call the callback, or return 'Break' instruction
         if (callback) {
           callback(*this);
@@ -424,17 +424,10 @@ const VMInst *VMInstContainer::GetInst(VMAddr pc) {
         // decrease the current step counter
         --n;
       }
-    }
-    // remove all outdated step counters
-    // but not remove newly added zero step counters
-    if (cleanup) {
-      std::size_t i = 0;
-      step_counters_.erase(
-          std::remove_if(
-              step_counters_.begin(), step_counters_.end(),
-              [&i, size](const auto &p) { return i++ < size && !p.first; }),
-          step_counters_.end());
+      // discard or push to queue again
+      if (!discard) step_counters_.push(step_counters_.front());
+      step_counters_.pop();
     }
   }
-  return break_flag ? &kBreakInst : inst;
+  return trap_mode_ || break_flag ? &kBreakInst : inst;
 }
