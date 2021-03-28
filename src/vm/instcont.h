@@ -96,6 +96,8 @@ class VMInstContainer {
   std::optional<std::uint32_t> FindLineNum(VMAddr pc) const;
   // getter, path to source file
   std::string_view src_file() const { return src_file_; }
+  // getter, instruction data
+  const VMInst *insts() const { return insts_.data(); }
 
   // instruction fetcher, for MiniVM instances
   //
