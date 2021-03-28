@@ -10,6 +10,8 @@
 #include <sstream>
 #include <cassert>
 #include <cmath>
+#include <csetjmp>
+#include <csignal>
 #include <cstdlib>
 #include <cctype>
 
@@ -51,6 +53,12 @@ const std::unordered_map<std::string_view, InfoItem> kInfoItems = {
     {"break", InfoItem::Break}, {"b", InfoItem::Break},
     {"watch", InfoItem::Watch}, {"w", InfoItem::Watch},
 };
+
+// buffer for setjmp/longjmp when segmentation fault
+std::jmp_buf seg_fault_jump;
+
+// segmentation fault handler for 'ExamineMem' method
+void SegFaultHandler(int sig) { std::longjmp(seg_fault_jump, 1); }
 
 // print instructions to stdout
 template <typename Info, typename Addr>
@@ -707,26 +715,36 @@ bool MiniDebugger::ExamineMem(std::istream &is) {
   // get expression
   auto val = ReadExpression(is, false);
   if (!val) return false;
-  // print memory units
-  auto addr = *val;
-  while (n--) {
-    // print address
-    std::cout << std::hex << std::setfill('0') << std::setw(8) << addr;
-    // get pointer of current unit
-    // TODO: boundary check?
-    auto ptr = reinterpret_cast<char *>(vm_.mem_pool()->GetAddress(addr));
-    addr += 4;
-    // print contents
-    std::cout << ": " << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*ptr++) << ' ';
-    std::cout << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*ptr++) << ' ';
-    std::cout << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*ptr++) << ' ';
-    std::cout << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*ptr++);
-    std::cout << std::dec << std::endl;
+  // setup segmentation fault handler
+  std::signal(SIGSEGV, SegFaultHandler);
+  if (!setjmp(seg_fault_jump)) {
+    // print memory units
+    auto addr = *val;
+    while (n--) {
+      // print address
+      std::cout << std::hex << std::setfill('0') << std::setw(8) << addr;
+      // get pointer of current unit
+      auto ptr = reinterpret_cast<char *>(vm_.mem_pool()->GetAddress(addr));
+      addr += 4;
+      // print contents
+      std::cout << ": " << std::setw(2) << std::setfill('0')
+                << static_cast<int>(*ptr++) << ' ';
+      std::cout << std::setw(2) << std::setfill('0')
+                << static_cast<int>(*ptr++) << ' ';
+      std::cout << std::setw(2) << std::setfill('0')
+                << static_cast<int>(*ptr++) << ' ';
+      std::cout << std::setw(2) << std::setfill('0')
+                << static_cast<int>(*ptr++);
+      std::cout << std::dec << std::endl;
+    }
   }
+  else {
+    // segmentation fault
+    std::cout << std::endl;
+    LogError("segmentation fault");
+  }
+  // cancel segmentation fault handler
+  std::signal(SIGSEGV, SIG_DFL);
   return false;
 }
 
