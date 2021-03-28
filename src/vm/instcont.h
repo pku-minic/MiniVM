@@ -10,6 +10,7 @@
 #include <string>
 #include <functional>
 #include <map>
+#include <queue>
 #include <cstdint>
 
 #include "vm/define.h"
@@ -149,8 +150,8 @@ class VMInstContainer {
   std::unordered_map<VMAddr, std::uint32_t> breakpoints_;
   // whether the container is in trap mode
   bool trap_mode_;
-  // step counters
-  std::vector<std::pair<std::size_t, StepCallback>> step_counters_;
+  // queue for step counters
+  std::queue<std::pair<std::size_t, StepCallback>> step_counters_;
 };
 
 #endif  // MINIVM_VM_INSTCONT_H_
