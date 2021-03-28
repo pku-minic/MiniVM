@@ -304,6 +304,28 @@ void MiniDebugger::CheckWatchpoints() {
   }
 }
 
+void MiniDebugger::NextLineHandler() {
+  // TODO
+}
+
+void MiniDebugger::NextInstHandler(std::size_t n) {
+  // TODO
+}
+
+void MiniDebugger::StepLineHandler(std::optional<std::uint32_t> line) {
+  auto cur_line = vm_.cont().FindLineNum(vm_.pc());
+  if (cur_line == line) {
+    // line position not changed, continue watching
+    vm_.cont().AddStepCounter(0, [this, line](VMInstContainer &cont) {
+      StepLineHandler(line);
+    });
+  }
+  else {
+    // stop execution
+    vm_.cont().ToggleTrapMode(true);
+  }
+}
+
 void MiniDebugger::PrintStackInfo() {
   const auto &oprs = vm_.oprs();
   std::cout << "operand stack size: " << oprs.size() << std::endl;
@@ -538,7 +560,10 @@ bool MiniDebugger::NextInst(std::istream &is) {
 }
 
 bool MiniDebugger::StepLine(std::istream &is) {
-  // TODO
+  auto line = vm_.cont().FindLineNum(vm_.pc());
+  vm_.cont().AddStepCounter(0, [this, line](VMInstContainer &cont) {
+    StepLineHandler(line);
+  });
   return true;
 }
 
