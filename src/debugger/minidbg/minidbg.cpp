@@ -309,8 +309,28 @@ void MiniDebugger::CheckWatchpoints() {
   }
 }
 
-void MiniDebugger::NextLineHandler() {
-  // TODO
+void MiniDebugger::NextLineHandler(std::uint32_t line, std::size_t depth) {
+  auto cur_line = vm_.cont().FindLineNum(vm_.pc());
+  if (!depth && cur_line != line) {
+    // the line after the function call has been fetched
+    vm_.cont().ToggleTrapMode(true);
+  }
+  else {
+    // still in function call
+    auto cur_inst = vm_.cont().insts() + vm_.pc();
+    // update depth
+    auto new_depth = depth;
+    switch (static_cast<InstOp>(cur_inst->op)) {
+      case InstOp::Call: ++new_depth; break;
+      case InstOp::Ret: --new_depth; break;
+      default:;
+    }
+    // update step counter
+    vm_.cont().AddStepCounter(
+        0, [this, line, new_depth](VMInstContainer &cont) {
+          NextLineHandler(line, new_depth);
+        });
+  }
 }
 
 void MiniDebugger::NextInstHandler(std::size_t n) {
@@ -370,7 +390,7 @@ void MiniDebugger::NextInstHandler(std::size_t n, std::size_t next_pc,
 void MiniDebugger::StepLineHandler(std::optional<std::uint32_t> line) {
   auto cur_line = vm_.cont().FindLineNum(vm_.pc());
   if (cur_line == line) {
-    // line position not changed, continue watching
+    // line position not changed, continue stepping
     vm_.cont().AddStepCounter(0, [this, line](VMInstContainer &cont) {
       StepLineHandler(line);
     });
@@ -593,7 +613,20 @@ bool MiniDebugger::Continue(std::istream &is) {
 }
 
 bool MiniDebugger::NextLine(std::istream &is) {
-  // TODO
+  auto line = vm_.cont().FindLineNum(vm_.pc());
+  auto cur_inst = vm_.cont().insts() + vm_.pc();
+  if (static_cast<InstOp>(cur_inst->op) == InstOp::Call) {
+    // step until reaching the next line
+    assert(line);
+    auto cur_line = *line;
+    vm_.cont().AddStepCounter(0, [this, cur_line](VMInstContainer &cont) {
+      NextLineHandler(cur_line, 0);
+    });
+  }
+  else {
+    // just same as step into
+    StepLineHandler(line);
+  }
   return true;
 }
 
