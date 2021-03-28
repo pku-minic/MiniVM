@@ -282,11 +282,10 @@ void MiniDebugger::CheckWatchpoints() {
     auto &info = it.second;
     // evaluate new value
     auto val = eval_.Eval(info.record_id);
-    assert(val);
-    if (*val != info.last_val) {
+    if (val && *val != info.last_val) {
       break_flag = true;
       // record change
-      std::cout << "watchpoint " << it.first << " hit ($"
+      std::cout << "watchpoint #" << it.first << " hit ($"
                 << info.record_id << ")" << std::endl;
       std::cout << "  old value: " << info.last_val << std::endl;
       std::cout << "  new value: " << *val << std::endl;
