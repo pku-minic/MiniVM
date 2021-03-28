@@ -153,9 +153,9 @@ void MiniDebugger::InitDebuggerCommands() {
                   "  watch/w  --- watchpoints");
   RegisterCommand("layout", "", CMD_HANDLER(SetLayout), "FMT",
                   "set layout of disassembler",
-                  "Set layout of disassembler, FMT can be 'src' or 'asm'");
+                  "Set layout of disassembler, FMT can be 'src' or 'asm'.");
   RegisterCommand("disasm", "da", CMD_HANDLER(DisasmMem), "[N POS]",
-                  "set layout of automatic disassemble",
+                  "Show source code, or disassemble VM instructions",
                   "Disassemble N loc/instructions at POS, "
                   "disassemble 10 loc near current PC by default.");
 }
