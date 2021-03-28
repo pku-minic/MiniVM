@@ -76,6 +76,12 @@ class MiniDebugger : public DebuggerBase {
   void CheckBreakpoints();
   // check watchpoint status
   void CheckWatchpoints();
+  // next line handler
+  void NextLineHandler();
+  // next inst handler
+  void NextInstHandler(std::size_t n);
+  // step line handler
+  void StepLineHandler(std::optional<std::uint32_t> line);
   // print operand stack info
   void PrintStackInfo();
   // print environment info
