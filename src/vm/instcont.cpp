@@ -395,7 +395,9 @@ std::optional<VMAddr> VMInstContainer::FindPC(
 
 std::optional<std::uint32_t> VMInstContainer::FindLineNum(
     VMAddr pc) const {
-  if (pc >= insts_.size()) return {};
+  auto entry_pc = FindPC(kVMEntry);
+  assert(entry_pc);
+  if (pc >= *entry_pc) return {};
   auto it = pc_defs_.lower_bound(pc);
   if (it == pc_defs_.end()) return {};
   return it->second;
