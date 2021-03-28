@@ -78,8 +78,10 @@ class MiniDebugger : public DebuggerBase {
   void CheckWatchpoints();
   // next line handler
   void NextLineHandler();
-  // next inst handler
+  // next inst handlers
   void NextInstHandler(std::size_t n);
+  void NextInstHandler(std::size_t n, std::size_t next_pc,
+                       std::size_t depth);
   // step line handler
   void StepLineHandler(std::optional<std::uint32_t> line);
   // print operand stack info

@@ -314,7 +314,57 @@ void MiniDebugger::NextLineHandler() {
 }
 
 void MiniDebugger::NextInstHandler(std::size_t n) {
-  // TODO
+  if (!n) {
+    // stop execution
+    vm_.cont().ToggleTrapMode(true);
+  }
+  else {
+    // step over the current instruction
+    auto cur_inst = vm_.cont().insts() + vm_.pc();
+    if (static_cast<InstOp>(cur_inst->op) == InstOp::Call) {
+      // wait until instruction at 'pc + 1' has been fetched
+      NextInstHandler(n - 1, vm_.pc() + 1, 0);
+    }
+    else {
+      // just step
+      vm_.cont().AddStepCounter(0, [this, n](VMInstContainer &cont) {
+        NextInstHandler(n - 1);
+      });
+    }
+  }
+}
+
+void MiniDebugger::NextInstHandler(std::size_t n, std::size_t next_pc,
+                                   std::size_t depth) {
+  if (vm_.pc() == next_pc && !depth) {
+    // the instruction after the 'Call' instruction has been fetched
+    if (!n) {
+      // stop execution
+      vm_.cont().ToggleTrapMode(true);
+    }
+    else {
+      // go for next step
+      vm_.cont().AddStepCounter(0, [this, n](VMInstContainer &cont) {
+        NextInstHandler(n - 1);
+      });
+    }
+  }
+  else {
+    // still in function call
+    auto cur_inst = vm_.cont().insts() + vm_.pc();
+    // update depth
+    auto new_depth = depth;
+    switch (static_cast<InstOp>(cur_inst->op)) {
+      case InstOp::Call: ++new_depth; break;
+      case InstOp::Ret: --new_depth; break;
+      default:;
+    }
+    // update step counter
+    vm_.cont().AddStepCounter(
+        0, [this, n, next_pc, new_depth](VMInstContainer &cont) {
+          NextInstHandler(n, next_pc, new_depth);
+        });
+  }
 }
 
 void MiniDebugger::StepLineHandler(std::optional<std::uint32_t> line) {
@@ -548,7 +598,19 @@ bool MiniDebugger::NextLine(std::istream &is) {
 }
 
 bool MiniDebugger::NextInst(std::istream &is) {
-  // TODO
+  std::size_t n = 1;
+  if (!is.eof()) {
+    // n steps
+    is >> n;
+    if (!is || !n) {
+      LogError("invalid step count");
+      return false;
+    }
+  }
+  // add step counter
+  vm_.cont().AddStepCounter(0, [this, n](VMInstContainer &cont) {
+    NextInstHandler(n);
+  });
   return true;
 }
 
@@ -563,7 +625,7 @@ bool MiniDebugger::StepInst(std::istream &is) {
   if (!is.eof()) {
     // n steps
     is >> n;
-    if (!is) {
+    if (!is || !n) {
       LogError("invalid step count");
       return false;
     }
