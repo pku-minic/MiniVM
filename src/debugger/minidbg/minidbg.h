@@ -94,10 +94,10 @@ class MiniDebugger : public DebuggerBase {
   // print watchpoint info
   void PrintWatchInfo();
   // show disassembly near current PC
-  void ShowDisasm(bool silent);
+  void ShowDisasm();
   // show disassembly
   // parameter 'n' may represent the number of instructions or lines
-  void ShowDisasm(VMAddr pc, std::size_t n, bool silent);
+  void ShowDisasm(VMAddr pc, std::size_t n);
 
   // create a new breakpoint ('break [POS]')
   bool CreateBreak(std::istream &is);

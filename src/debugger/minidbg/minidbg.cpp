@@ -172,7 +172,7 @@ bool MiniDebugger::DebuggerCallback() {
     // check breakpoint status
     CheckBreakpoints();
     // show disassembly
-    ShowDisasm(true);
+    ShowDisasm();
     // enter command line interface
     EnterCLI();
   }
@@ -273,11 +273,10 @@ void MiniDebugger::CheckBreakpoints() {
     ++it->second->hit_count;
     // print PC address
     std::cout << "breakpoint hit, pc = " << cur_pc;
-    // try to print line number
-    if (auto line = cont.FindLineNum(cur_pc)) {
-      std::cout << ", at line " << *line;
-    }
-    std::cout << std::endl;
+    // print line number
+    auto line = cont.FindLineNum(cur_pc);
+    assert(line);
+    std::cout << ", at line " << *line << std::endl;
   }
 }
 
@@ -419,7 +418,7 @@ void MiniDebugger::PrintWatchInfo() {
   }
 }
 
-void MiniDebugger::ShowDisasm(bool silent) {
+void MiniDebugger::ShowDisasm() {
   auto pc = vm_.pc();
   if (layout_fmt_ == LayoutFormat::Asm) {
     pc = pc >= 2 ? pc - 2 : 0;
@@ -428,21 +427,16 @@ void MiniDebugger::ShowDisasm(bool silent) {
     assert(layout_fmt_ == LayoutFormat::Source);
     // get line number of current PC
     auto line = vm_.cont().FindLineNum(pc);
-    if (!line) {
-      if (!silent) {
-        LogError("unable to determine the line number of current PC");
-      }
-      return;
-    }
+    assert(line);
     // get start PC address
     auto line_start = *line >= 2 ? *line - 2 : 0;
     auto pc_start = vm_.cont().FindPC(line_start);
     if (pc_start) pc = *pc_start;
   }
-  ShowDisasm(pc, 10, silent);
+  ShowDisasm(pc, 10);
 }
 
-void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n, bool silent) {
+void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n) {
   if (layout_fmt_ == LayoutFormat::Asm) {
     std::vector<InstInfo> info;
     // add instructions to 'info'
@@ -461,10 +455,7 @@ void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n, bool silent) {
     // get start line number of the pc & current line number
     auto line_no = vm_.cont().FindLineNum(pc);
     auto cur_line_no = vm_.cont().FindLineNum(vm_.pc());
-    if (!line_no || !cur_line_no) {
-      if (!silent) LogError("source code unavaliable");
-      return;
-    }
+    assert(line_no && cur_line_no);
     // add lines to 'info'
     for (std::size_t i = 0; i < n; ++i) {
       // read the current line
@@ -685,7 +676,7 @@ bool MiniDebugger::SetLayout(std::istream &is) {
 bool MiniDebugger::DisasmMem(std::istream &is) {
   // no parameters
   if (is.eof()) {
-    ShowDisasm(false);
+    ShowDisasm();
   }
   else {
     // get parameters
@@ -701,7 +692,7 @@ bool MiniDebugger::DisasmMem(std::istream &is) {
       return false;
     }
     // show disassembly
-    ShowDisasm(*pos, n, false);
+    ShowDisasm(*pos, n);
   }
   return false;
 }
