@@ -76,8 +76,8 @@ class MiniDebugger : public DebuggerBase {
   void CheckBreakpoints();
   // check watchpoint status
   void CheckWatchpoints();
-  // next line handler
-  void NextLineHandler();
+  // next line handlers
+  void NextLineHandler(std::uint32_t line, std::size_t depth);
   // next inst handlers
   void NextInstHandler(std::size_t n);
   void NextInstHandler(std::size_t n, std::size_t next_pc,
