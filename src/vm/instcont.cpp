@@ -261,9 +261,11 @@ void VMInstContainer::EnterFunc(std::uint32_t param_count) {
 }
 
 void VMInstContainer::EnterFunc(std::uint32_t param_count,
-                                std::uint32_t slot_count) {
+                                std::uint32_t slot_count,
+                                std::uint32_t line_num) {
   EnterFunc(param_count);
   // create stack frame
+  LogLineNum(line_num);
   PushLoad(slot_count * 4);
   PushArr(kVMFrame);
 }

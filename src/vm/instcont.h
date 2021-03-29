@@ -63,7 +63,8 @@ class VMInstContainer {
   // enter function environment
   // should be called before instruction insertion
   void EnterFunc(std::uint32_t param_count);
-  void EnterFunc(std::uint32_t param_count, std::uint32_t slot_count);
+  void EnterFunc(std::uint32_t param_count, std::uint32_t slot_count,
+                 std::uint32_t line_num);
   // exit function environment
   void ExitFunc();
   // perform label backfilling, and seal current container
