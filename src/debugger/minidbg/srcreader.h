@@ -1,6 +1,7 @@
 #ifndef MINIVM_DEBUGGER_MINIDBG_SRCREADER_H_
 #define MINIVM_DEBUGGER_MINIDBG_SRCREADER_H_
 
+#include <optional>
 #include <string_view>
 #include <string>
 #include <fstream>
@@ -15,8 +16,8 @@ class SourceReader {
   }
 
   // read the content of the specific line number in source file
-  // returns empty string when 'line_num' is out of range
-  std::string_view ReadLine(std::uint32_t line_num);
+  // returns 'nullopt' when 'line_num' is out of range
+  std::optional<std::string_view> ReadLine(std::uint32_t line_num);
 
  private:
   // initialize total line number

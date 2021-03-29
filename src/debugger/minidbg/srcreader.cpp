@@ -18,7 +18,8 @@ void SourceReader::SeekLine(std::uint32_t line_num) {
   }
 }
 
-std::string_view SourceReader::ReadLine(std::uint32_t line_num) {
+std::optional<std::string_view> SourceReader::ReadLine(
+    std::uint32_t line_num) {
   // check if 'line_num' is invalid
   if (line_num > total_lines_) return {};
   // try to find in buffer
