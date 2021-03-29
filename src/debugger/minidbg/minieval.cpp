@@ -1,6 +1,7 @@
 #include "debugger/minidbg/minieval.h"
 
 #include "front/token.h"
+#include "vm/define.h"
 
 namespace {
 
@@ -38,7 +39,9 @@ std::optional<VMOpr> MiniEvaluator::GetRegVal(std::string_view reg) {
 }
 
 std::optional<VMOpr> MiniEvaluator::GetValueOfSym(std::string_view sym) {
-  return sym[0] == '$' ? GetRegVal(sym.substr(1)) : GetSymVal(sym);
+  static_assert(kVMFrame[0] == '$');
+  return sym == kVMFrame || sym[0] != '$' ? GetSymVal(sym)
+                                          : GetRegVal(sym.substr(1));
 }
 
 std::optional<VMOpr> MiniEvaluator::GetValueOfAddr(VMOpr addr) {
