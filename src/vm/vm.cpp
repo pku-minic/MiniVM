@@ -3,59 +3,97 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <cassert>
 
 #include "xstl/style.h"
 
 // assertion with VM runtime info
 #ifdef NDEBUG
-#define VM_ASSERT(e) static_cast<void>(e)
+#define VM_ASSERT(e, code) static_cast<void>(e)
 #else
 #define VM_STR1(s) #s
 #define VM_STR(s) VM_STR1(s)
-#define VM_ASSERT(e)                          \
-  do {                                        \
-    if (!(e)) {                               \
-      LogError("assertion failed: " #e        \
-               ", file " VM_STR(__FILE__)     \
-               ", line " VM_STR(__LINE__));   \
-      std::abort();                           \
-    }                                         \
+#define VM_ASSERT(e, code)                                               \
+  do {                                                                   \
+    if (!(e)) {                                                          \
+      std::cerr << "assertion failed: " #e                               \
+                   ", file " VM_STR(__FILE__) ", line " VM_STR(__LINE__) \
+                << std::endl;                                            \
+      LogError(code);                                                    \
+      std::_Exit(code);                                                  \
+    }                                                                    \
   } while (0)
 #endif
 
-void VM::LogError(std::string_view message) const {
+void VM::LogError(std::size_t code) {
   using namespace xstl;
+  // print header
   std::cerr << style("Br") << "error";
   if (auto line_num = cont_.FindLineNum(pc_)) {
     std::cerr << style("B") << " (line " << *line_num
               << ", pc " << pc_ << ')';
   }
-  std::cerr << ": " << message << std::endl;
+  std::cerr << ": ";
+  // print error message
+  switch (code) {
+    case kVMErrorEmptyOprStack: {
+      std::cerr << "accessing empty operand stack";
+      break;
+    }
+    case kVMErrorInvalidMemPoolAddr: {
+      std::cerr << "invalid memory pool address";
+      break;
+    }
+    case kVMErrorSymbolNotFound: {
+      std::cerr << "symbol not found";
+      break;
+    }
+    case kVMErrorSymbolRedef: {
+      std::cerr << "redefining symbol";
+      break;
+    }
+    case kVMErrorInvalidRegNum: {
+      std::cerr << "invalid register number";
+      break;
+    }
+    case kVMErrorInvalidExtFunc: {
+      std::cerr << "invalid external function";
+      break;
+    }
+    case kVMErrorExtFuncError: {
+      std::cerr << "error occurred during external function call";
+      break;
+    }
+    default: assert(false);
+  }
+  std::cerr << std::endl;
+  // update error code
+  error_code_ = code;
 }
 
 VMOpr VM::PopValue() {
-  VM_ASSERT(!oprs_.empty());
+  VM_ASSERT(!oprs_.empty(), kVMErrorEmptyOprStack);
   auto ret = oprs_.top();
   oprs_.pop();
   return ret;
 }
 
 VMOpr &VM::GetOpr() {
-  VM_ASSERT(!oprs_.empty());
+  VM_ASSERT(!oprs_.empty(), kVMErrorEmptyOprStack);
   return oprs_.top();
 }
 
-VMOpr *VM::GetAddrById(MemId id) const {
+VMOpr *VM::GetAddrById(MemId id) {
   // find in memory pool
   auto ptr = mem_pool_->GetAddress(id);
   if (!ptr) {
-    LogError("invalid memory pool address");
+    LogError(kVMErrorInvalidMemPoolAddr);
     return nullptr;
   }
   return reinterpret_cast<VMOpr *>(ptr);
 }
 
-VMOpr *VM::GetAddrBySym(SymId sym) const {
+VMOpr *VM::GetAddrBySym(SymId sym) {
   // find in current environment
   const auto &env = envs_.top().first;
   auto it = env->find(sym);
@@ -63,7 +101,7 @@ VMOpr *VM::GetAddrBySym(SymId sym) const {
     // find in global environment
     it = global_env_->find(sym);
     if (it == global_env_->end()) {
-      LogError("symbol not found");
+      LogError(kVMErrorSymbolNotFound);
       return nullptr;
     }
   }
@@ -87,7 +125,7 @@ void VM::InitFuncCall() {
     // write value
     auto ret = env->insert({sym, PopValue()}).second;
     static_cast<void>(ret);
-    VM_ASSERT(ret);
+    VM_ASSERT(ret, kVMErrorSymbolRedef);
   }
 }
 
@@ -118,6 +156,8 @@ void VM::Reset() {
   mem_pool_->SaveState();
   // clear all static registers
   regs_.assign(regs_.size(), 0);
+  // reset error code
+  error_code_ = 0;
 }
 
 std::optional<VMOpr> VM::Run() {
@@ -136,7 +176,7 @@ std::optional<VMOpr> VM::Run() {
   VM_LABEL(Var) {
     auto succ = envs_.top().first->insert({inst->opr, 0}).second;
 #ifndef VM_LEGACY_MODE
-    VM_ASSERT(succ);
+    VM_ASSERT(succ, kVMErrorSymbolRedef);
 #endif
     static_cast<void>(succ);
     VM_NEXT(1);
@@ -147,7 +187,7 @@ std::optional<VMOpr> VM::Run() {
     // add a new entry to environment
     auto ret = envs_.top().first->insert({inst->opr, 0});
 #ifndef VM_LEGACY_MODE
-    VM_ASSERT(ret.second);
+    VM_ASSERT(ret.second, kVMErrorSymbolRedef);
 #endif
     // allocate a new memory
     if (ret.second) ret.first->second = mem_pool_->Allocate(PopValue());
@@ -176,7 +216,7 @@ std::optional<VMOpr> VM::Run() {
 
   // load static register
   VM_LABEL(LdReg) {
-    VM_ASSERT(inst->opr < regs_.size());
+    VM_ASSERT(inst->opr < regs_.size(), kVMErrorInvalidRegNum);
     oprs_.push(regs_[inst->opr]);
     VM_NEXT(1);
   }
@@ -213,14 +253,14 @@ std::optional<VMOpr> VM::Run() {
 
   // store static register
   VM_LABEL(StReg) {
-    VM_ASSERT(inst->opr < regs_.size());
+    VM_ASSERT(inst->opr < regs_.size(), kVMErrorInvalidRegNum);
     regs_[inst->opr] = PopValue();
     VM_NEXT(1);
   }
 
   // store static register and preserve
   VM_LABEL(StRegP) {
-    VM_ASSERT(inst->opr < regs_.size());
+    VM_ASSERT(inst->opr < regs_.size(), kVMErrorInvalidRegNum);
     regs_[inst->opr] = GetOpr();
     VM_NEXT(1);
   }
@@ -273,13 +313,13 @@ std::optional<VMOpr> VM::Run() {
     // get external function
     auto it = ext_funcs_.find(inst->opr);
     if (it == ext_funcs_.end()) {
-      LogError("invalid external function");
+      LogError(kVMErrorInvalidExtFunc);
       return {};
     }
     // perform function call
     InitFuncCall();
     if (!it->second(*this)) {
-      LogError("error occurred during external function call");
+      LogError(kVMErrorExtFuncError);
       return {};
     }
     // perform return operation

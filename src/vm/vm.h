@@ -72,18 +72,20 @@ class VM {
   const EnvPtr &global_env() const { return global_env_; }
   // static registers
   VMOpr &regs(RegId id) { return regs_[id]; }
+  // error code
+  std::size_t error_code() const { return error_code_; }
 
  private:
-  // print error message to stderr
-  void LogError(std::string_view message) const;
+  // update the error code, and print the related error message to stderr
+  void LogError(std::size_t code);
   // pop value from stack and return it
   VMOpr PopValue();
   // get reference of the top of stack
   VMOpr &GetOpr();
   // get address of memory by id
-  VMOpr *GetAddrById(MemId id) const;
+  VMOpr *GetAddrById(MemId id);
   // get address of memory by symbol
-  VMOpr *GetAddrBySym(SymId sym) const;
+  VMOpr *GetAddrBySym(SymId sym);
   // make a new environment
   EnvPtr MakeEnv();
   // perform initialization before function call
@@ -109,6 +111,8 @@ class VM {
   RegId ret_reg_id_;
   // external function table
   std::unordered_map<SymId, ExtFunc> ext_funcs_;
+  // error code
+  std::size_t error_code_;
 };
 
 #endif  // MINIVM_VM_VM_H_
