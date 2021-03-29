@@ -72,4 +72,25 @@ constexpr const char *kVMDebugger = "$debugger";
 // name of main function
 constexpr const char *kVMMain = "f_main";
 
+// error codes
+//
+// no error
+constexpr std::size_t kVMErrorNoError = 0;
+// accessing empty operand stack
+constexpr std::size_t kVMErrorEmptyOprStack = 150;
+// invalid memory pool address
+constexpr std::size_t kVMErrorInvalidMemPoolAddr = 151;
+// symbol not found
+constexpr std::size_t kVMErrorSymbolNotFound = 152;
+// redefining symbol
+constexpr std::size_t kVMErrorSymbolRedef = 153;
+// invalid register number
+constexpr std::size_t kVMErrorInvalidRegNum = 154;
+// invalid external function
+constexpr std::size_t kVMErrorInvalidExtFunc = 155;
+// external function error
+constexpr std::size_t kVMErrorExtFuncError = 156;
+// VM irrelevant error
+constexpr std::size_t kVMErrorVMIrrelevant = 255;
+
 #endif  // MINIVM_VM_DEFINE_H_
