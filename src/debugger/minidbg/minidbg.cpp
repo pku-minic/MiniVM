@@ -10,13 +10,12 @@
 #include <sstream>
 #include <cassert>
 #include <cmath>
-#include <csetjmp>
-#include <csignal>
 #include <cstdlib>
 #include <cctype>
 
 #include "front/token.h"
 #include "xstl/style.h"
+#include "xstl/segfault.h"
 
 // create a new anonymous command handler
 #define CMD_HANDLER(func) [this](std::istream &is) { return func(is); }
@@ -53,12 +52,6 @@ const std::unordered_map<std::string_view, InfoItem> kInfoItems = {
     {"break", InfoItem::Break}, {"b", InfoItem::Break},
     {"watch", InfoItem::Watch}, {"w", InfoItem::Watch},
 };
-
-// buffer for setjmp/longjmp when segmentation fault
-std::jmp_buf seg_fault_jump;
-
-// segmentation fault handler for 'ExamineMem' method
-void SegFaultHandler(int sig) { std::longjmp(seg_fault_jump, 1); }
 
 // print instructions to stdout
 template <typename Info, typename Addr>
@@ -572,7 +565,10 @@ bool MiniDebugger::CreateWatch(std::istream &is) {
   auto id = eval_.next_id();
   // evaluate expression and record
   auto val = ReadExpression(is);
-  if (!val) return false;
+  if (!val) {
+    LogError("invalid expression");
+    return false;
+  }
   // store watchpoint info
   auto succ = watches_.insert({next_id_++, {id, *val, 0}}).second;
   assert(succ);
@@ -715,9 +711,7 @@ bool MiniDebugger::ExamineMem(std::istream &is) {
   // get expression
   auto val = ReadExpression(is, false);
   if (!val) return false;
-  // setup segmentation fault handler
-  std::signal(SIGSEGV, SegFaultHandler);
-  if (!setjmp(seg_fault_jump)) {
+  TRY_SEGFAULT {
     // print memory units
     auto addr = *val;
     while (n--) {
@@ -738,13 +732,11 @@ bool MiniDebugger::ExamineMem(std::istream &is) {
       std::cout << std::dec << std::endl;
     }
   }
-  else {
+  CATCH_SEGFAULT {
     // segmentation fault
     std::cout << std::endl;
     LogError("segmentation fault");
   }
-  // cancel segmentation fault handler
-  std::signal(SIGSEGV, SIG_DFL);
   return false;
 }
 
