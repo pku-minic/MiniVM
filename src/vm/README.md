@@ -153,6 +153,26 @@ Unlike the `Call`/`CallExt` instruction, there are no new environments will be c
 
 When `$debugger` returns, MiniVM will check the return value. If it's `False`, the execution process will be interrupted. Otherwise, MiniVM will ***re-execute*** the current instruction.
 
+## Error Handling
+
+Some errors may occur while MiniVM is running. When an error occurs, MiniVM will print the error message to `stderr` and record the error code of that error.
+
+The error codes and their meanings are shown in the table below:
+
+| Error Code  | Meaning                         |
+| ---         | ---                             |
+| 0           | No error.                       |
+| 150         | Accessing empty operand stack.  |
+| 151         | Invalid memory pool address.    |
+| 152         | Symbol not found.               |
+| 153         | Redefining symbol.              |
+| 154         | Invalid register number.        |
+| 155         | Invalid external function.      |
+| 156         | External function error.        |
+| 255         | VM irrelevant error.            |
+
+The error codes are designed mainly to facilitate the implementation of certain automated test scripts.
+
 ## Gopher Bytecode File Format
 
 > Still WIP.
