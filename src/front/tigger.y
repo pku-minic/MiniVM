@@ -93,7 +93,7 @@ FunctionHeader
   : FUNCTION '[' NUM ']' '[' NUM ']' {
     CONT().LogLineNum(@$.first_line);
     CONT().PushLabel($1);
-    CONT().EnterFunc($3, $6);
+    CONT().EnterFunc($3, $6, @$.first_line);
   }
   ;
 
