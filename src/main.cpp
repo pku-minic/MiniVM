@@ -76,25 +76,27 @@ optional<VMOpr> RunVM(xstl::ArgParser &argp, string_view file, ostream &os,
     return 0;
   }
   // run MiniVM
+  std::optional<VMOpr> ret;
   VM vm(symbols, cont);
   vm_init(vm);
   if (argp.GetValue<bool>("debug")) {
     // debug mode
     MiniDebugger debugger(vm);
     PrintVersion();
-    auto ret = vm.Run();
+    ret = vm.Run();
     // print exit code
     if (!ret) {
-      std::cout << "VM instance ended with an error" << std::endl;
+      std::cout << "VM instance ended with error code ";
+      std::cout << vm.error_code() << std::endl;
     }
     else {
       std::cout << "VM instance exited with code " << *ret << std::endl;
     }
-    return ret;
   }
   else {
-    return vm.Run();
+    ret = vm.Run();
   }
+  return ret ? *ret : static_cast<VMOpr>(vm.error_code());
 }
 
 optional<VMOpr> RunEeyore(xstl::ArgParser &argp, string_view file,
@@ -129,5 +131,5 @@ int main(int argc, const char *argv[]) {
   else {
     ret = RunEeyore(argp, in_file, os);
   }
-  return ret ? *ret : -1;
+  return ret ? *ret : kVMErrorVMIrrelevant;
 }
