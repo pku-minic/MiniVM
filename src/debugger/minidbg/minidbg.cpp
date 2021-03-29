@@ -532,11 +532,11 @@ void MiniDebugger::ShowDisasm(VMAddr pc, std::size_t n) {
       // read the current line
       std::uint32_t cur_no = *line_no + i;
       auto line = src_reader_.ReadLine(cur_no);
-      if (line.empty()) break;
+      if (!line) break;
       // check if there is a breakpoint
       auto cur_pc = vm_.cont().FindPC(cur_no);
       auto is_break = cur_pc && pc_bp_.count(*cur_pc);
-      info.push_back({is_break, cur_no, line});
+      info.push_back({is_break, cur_no, *line});
     }
     // print line info list
     PrintInst(info, *cur_line_no);
