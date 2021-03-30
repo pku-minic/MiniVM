@@ -31,6 +31,11 @@ std::optional<VMOpr> MiniEvaluator::GetRegVal(std::string_view reg) {
     return vm_.pc();
   }
   else {
+    // check if in Tigger mode
+    const auto &[env, _] = vm_.env_addr_pair();
+    auto id = vm_.sym_pool().FindId(kVMFrame);
+    if (!id || env->find(*id) == env->end()) return {};
+    // find register by name
     for (RegId i = 0; i < TOKEN_COUNT(TOKEN_REGISTERS); ++i) {
       if (kRegNames[i] == reg) return vm_.regs(i);
     }
