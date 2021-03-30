@@ -15,7 +15,6 @@
 
 #include "front/token.h"
 #include "xstl/style.h"
-#include "xstl/segfault.h"
 
 // create a new anonymous command handler
 #define CMD_HANDLER(func) [this](std::istream &is) { return func(is); }
@@ -433,15 +432,15 @@ void MiniDebugger::PrintEnvInfo() {
 }
 
 void MiniDebugger::PrintRegInfo() {
+  // print PC
+  std::cout << "current PC address: " << vm_.pc() << std::endl;
   // check if in Tigger mode
   const auto &[env, _] = vm_.env_addr_pair();
   auto id = vm_.sym_pool().FindId(kVMFrame);
-  if (!id || env->find(*id) != env->end()) {
+  if (!id || env->find(*id) == env->end()) {
     return LogError("MiniVM may not currently run in Tigger mode, "
                     "static registers should not be used.");
   }
-  // print PC
-  std::cout << "current PC address: " << vm_.pc() << std::endl;
   // print value of static registers
   std::cout << "static registers:" << std::endl << "  ";
   int count = 0;
@@ -711,31 +710,29 @@ bool MiniDebugger::ExamineMem(std::istream &is) {
   // get expression
   auto val = ReadExpression(is, false);
   if (!val) return false;
-  TRY_SEGFAULT {
-    // print memory units
-    auto addr = *val;
-    while (n--) {
-      // print address
-      std::cout << std::hex << std::setfill('0') << std::setw(8) << addr;
-      // get pointer of current unit
-      auto ptr = reinterpret_cast<char *>(vm_.mem_pool()->GetAddress(addr));
-      addr += 4;
-      // print contents
-      std::cout << ": " << std::setw(2) << std::setfill('0')
-                << static_cast<int>(*ptr++) << ' ';
-      std::cout << std::setw(2) << std::setfill('0')
-                << static_cast<int>(*ptr++) << ' ';
-      std::cout << std::setw(2) << std::setfill('0')
-                << static_cast<int>(*ptr++) << ' ';
-      std::cout << std::setw(2) << std::setfill('0')
-                << static_cast<int>(*ptr++);
-      std::cout << std::dec << std::endl;
+  // print memory units
+  auto addr = *val;
+  while (n--) {
+    // print address
+    std::cout << std::hex << std::setfill('0') << std::setw(8) << addr;
+    // get pointer of current unit
+    auto ptr = reinterpret_cast<char *>(vm_.mem_pool()->GetAddress(addr));
+    if (!ptr) {
+      std::cout << std::endl;
+      LogError("invalid memory address");
+      break;
     }
-  }
-  CATCH_SEGFAULT {
-    // segmentation fault
-    std::cout << std::endl;
-    LogError("segmentation fault");
+    addr += 4;
+    // print contents
+    std::cout << ": " << std::setw(2) << std::setfill('0')
+              << static_cast<int>(*ptr++) << ' ';
+    std::cout << std::setw(2) << std::setfill('0')
+              << static_cast<int>(*ptr++) << ' ';
+    std::cout << std::setw(2) << std::setfill('0')
+              << static_cast<int>(*ptr++) << ' ';
+    std::cout << std::setw(2) << std::setfill('0')
+              << static_cast<int>(*ptr++);
+    std::cout << std::dec << std::endl;
   }
   return false;
 }
