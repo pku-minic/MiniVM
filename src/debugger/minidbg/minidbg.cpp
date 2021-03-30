@@ -457,6 +457,7 @@ void MiniDebugger::PrintRegInfo() {
     }
   }
   if (count) std::cout << std::endl;
+  std::cout << std::dec;
 }
 
 void MiniDebugger::PrintBreakInfo() {
@@ -718,7 +719,7 @@ bool MiniDebugger::ExamineMem(std::istream &is) {
     // get pointer of current unit
     auto ptr = reinterpret_cast<char *>(vm_.mem_pool()->GetAddress(addr));
     if (!ptr) {
-      std::cout << std::endl;
+      std::cout << std::dec << std::endl;
       LogError("invalid memory address");
       break;
     }
