@@ -10,6 +10,7 @@ Before building MiniVM, please make sure you have installed the following depend
 
 * `cmake` 3.13 or later
 * C++ compiler supporting C++17
+* `flex` and `bison`
 * `readline`
 
 Then you can build this repository by executing the following command lines:
