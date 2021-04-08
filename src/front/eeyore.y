@@ -24,6 +24,9 @@
 // not support '%code requires'.
 #define CONT()  (*reinterpret_cast<VMInstContainer *>(cont))
 
+// line number in lexer
+extern const int eeyore_lineno;
+
 // lexer
 int yylex();
 
@@ -244,7 +247,7 @@ BinOp
 %%
 
 void yyerror(void *cont, const char *message) {
-  CONT().LogError(message);
+  CONT().LogError(message, eeyore_lineno);
 }
 
 static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op) {
