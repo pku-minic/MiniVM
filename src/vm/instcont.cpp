@@ -216,9 +216,14 @@ void VMInstContainer::PushOp(InstOp op) {
 }
 
 void VMInstContainer::LogError(std::string_view message) {
+  LogError(message, cur_line_num_);
+}
+
+void VMInstContainer::LogError(std::string_view message,
+                               std::uint32_t line_num) {
   using namespace xstl;
   std::cerr << style("Br") << "error ";
-  std::cerr << style("B") << "(line " << cur_line_num_ << "): ";
+  std::cerr << style("B") << "(line " << line_num << "): ";
   std::cerr << message << std::endl;
   has_error_ = true;
 }

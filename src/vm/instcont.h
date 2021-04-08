@@ -54,6 +54,7 @@ class VMInstContainer {
   //
   // print error message to stderr
   void LogError(std::string_view message);
+  void LogError(std::string_view message, std::uint32_t line_num);
   void LogError(std::string_view message, std::string_view sym);
   void LogError(std::string_view message, std::string_view sym,
                 std::uint32_t line_num);
