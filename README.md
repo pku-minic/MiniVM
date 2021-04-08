@@ -23,6 +23,10 @@ $ cd build
 $ cmake .. && make -j8
 ```
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md)
+
 ## License
 
 Copyright (C) 2010-2021 MaxXing. License GPLv3.
