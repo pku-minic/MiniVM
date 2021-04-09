@@ -28,6 +28,8 @@ class CodeGenerator {
   // check if there is a label on the specific address
   bool IsLabel(vm::VMAddr addr) const { return labels_.count(addr); }
 
+  // reset internal state
+  virtual void Reset() {};
   // generate code on function
   virtual void GenerateOnFunc(const FuncBody &func) = 0;
   // generate code on main function
