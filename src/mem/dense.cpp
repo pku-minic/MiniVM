@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+using namespace minivm::mem;
+
 MemId DenseMemoryPool::Allocate(std::uint32_t size) {
   // allocate memory
   auto id = mems_.size();

@@ -9,6 +9,8 @@
 
 #include "mem/pool.h"
 
+namespace minivm::mem {
+
 // sparse memory pool
 // no boundary check for any accessing operation
 class SparseMemoryPool : public MemoryPoolInterface {
@@ -30,5 +32,7 @@ class SparseMemoryPool : public MemoryPoolInterface {
   // stack of saved states
   std::stack<std::uint32_t> states_;
 };
+
+}  // namespace minivm::mem
 
 #endif  // MINIVM_MEM_SPARSE_H_
