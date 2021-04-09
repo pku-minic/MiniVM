@@ -17,6 +17,9 @@
 #include "debugger/minidbg/minidbg.h"
 
 using namespace std;
+using namespace minivm::vm;
+using namespace minivm::front;
+using namespace minivm::debugger::minidbg;
 
 namespace {
 

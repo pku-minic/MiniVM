@@ -8,11 +8,11 @@
 #include "vm/vm.h"
 
 // type definition of VM initializer
-using VMInit = std::function<void(VM &)>;
+using VMInit = std::function<void(minivm::vm::VM &)>;
 
 // initialize a Eeyore mode MiniVM instance
-void InitEeyoreVM(VM &vm);
+void InitEeyoreVM(minivm::vm::VM &vm);
 // initialize a Tigger mode MiniVM instance
-void InitTiggerVM(VM &vm);
+void InitTiggerVM(minivm::vm::VM &vm);
 
 #endif  // MINIVM_VMCONF_H_
