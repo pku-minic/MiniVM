@@ -24,7 +24,11 @@
 // count all elements
 #define TOKEN_COUNT(e)                  (e(TOKEN_EXPAND_ONES)0)
 
+namespace minivm::front {
+
 enum class TokenOp { TOKEN_OPERATORS(TOKEN_EXPAND_FIRST) };
 enum class TokenReg { TOKEN_REGISTERS(TOKEN_EXPAND_FIRST) };
+
+}  // namespace minivm::front
 
 #endif  // MINIVM_FRONT_TOKEN_H_

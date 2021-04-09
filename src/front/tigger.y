@@ -16,6 +16,9 @@
 #include "vm/instcont.h"
 #include "front/token.h"
 
+using namespace minivm::front;
+using namespace minivm::vm;
+
 // some magic, in order to be compatible with the new version
 // and the old version of Bison, since the newer version of
 // Bison will put the declaration of 'yyparse' function to
@@ -48,8 +51,8 @@ static InstOp GetBinaryOp(VMInstContainer &cont, TokenOp bin_op);
 %union {
   const char *str_val;
   std::int32_t int_val;
-  TokenOp op_val;
-  TokenReg reg_val;
+  minivm::front::TokenOp op_val;
+  minivm::front::TokenReg reg_val;
 }
 
 // all tokens

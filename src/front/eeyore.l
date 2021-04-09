@@ -15,6 +15,8 @@
 
 #include "eeyore.parser.hpp"
 
+using namespace minivm::front;
+
 // get 'op_val' of the specific operator
 static TokenOp GetOpVal(std::string_view op);
 

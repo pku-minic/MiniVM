@@ -9,10 +9,10 @@ std::unordered_set<std::string> strs;
 
 }  // namespace
 
-const char *NewStr(const char *str) {
+const char *minivm::front::NewStr(const char *str) {
   return strs.insert(str).first->c_str();
 }
 
-void FreeAllStrs() {
+void minivm::front::FreeAllStrs() {
   strs.clear();
 }
