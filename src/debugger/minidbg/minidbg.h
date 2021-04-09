@@ -11,10 +11,12 @@
 #include "debugger/minidbg/minieval.h"
 #include "debugger/minidbg/srcreader.h"
 
+namespace minivm::debugger::minidbg {
+
 // debugger for MiniVM
 class MiniDebugger : public DebuggerBase {
  public:
-  MiniDebugger(VM &vm)
+  MiniDebugger(vm::VM &vm)
       : DebuggerBase("minidbg> "), vm_(vm), eval_(vm), next_id_(0),
         layout_fmt_(LayoutFormat::Source),
         src_reader_(vm.cont().src_file()) {
@@ -29,7 +31,7 @@ class MiniDebugger : public DebuggerBase {
   // breakpoint information
   struct BreakInfo {
     // PC address of breakpoint
-    VMAddr addr;
+    vm::VMAddr addr;
     // hit count
     std::uint32_t hit_count;
   };
@@ -39,7 +41,7 @@ class MiniDebugger : public DebuggerBase {
     // expression record id (in 'ExprEvaluator')
     std::uint32_t record_id;
     // last value
-    VMOpr last_val;
+    vm::VMOpr last_val;
     // hit count
     std::uint32_t hit_count;
   };
@@ -61,11 +63,11 @@ class MiniDebugger : public DebuggerBase {
   void LogError(std::string_view message);
 
   // read POS from input stream
-  std::optional<VMAddr> ReadPosition(std::istream &is);
+  std::optional<vm::VMAddr> ReadPosition(std::istream &is);
   // read EXPR from input stream (with record)
-  std::optional<VMOpr> ReadExpression(std::istream &is);
+  std::optional<vm::VMOpr> ReadExpression(std::istream &is);
   // read EXPR from input stream
-  std::optional<VMOpr> ReadExpression(std::istream &is, bool record);
+  std::optional<vm::VMOpr> ReadExpression(std::istream &is, bool record);
   // delete the specific breakpoint
   // returns false if breakpoint not found
   bool DeleteBreak(std::uint32_t id);
@@ -87,7 +89,7 @@ class MiniDebugger : public DebuggerBase {
   // print operand stack info
   void PrintStackInfo();
   // print environment info
-  void PrintEnv(const VM::EnvPtr &env);
+  void PrintEnv(const vm::VM::EnvPtr &env);
   void PrintEnvInfo();
   // print static register info
   void PrintRegInfo();
@@ -99,7 +101,7 @@ class MiniDebugger : public DebuggerBase {
   void ShowDisasm();
   // show disassembly
   // parameter 'n' may represent the number of instructions or lines
-  void ShowDisasm(VMAddr pc, std::size_t n);
+  void ShowDisasm(vm::VMAddr pc, std::size_t n);
 
   // create a new breakpoint ('break [POS]')
   bool CreateBreak(std::istream &is);
@@ -129,7 +131,7 @@ class MiniDebugger : public DebuggerBase {
   bool DisasmMem(std::istream &is);
 
   // current MiniVM instance
-  VM &vm_;
+  vm::VM &vm_;
   // expression evaluator
   MiniEvaluator eval_;
   // next breakpoint/watchpoint id
@@ -137,7 +139,7 @@ class MiniDebugger : public DebuggerBase {
   // all breakpoints
   std::unordered_map<std::uint32_t, BreakInfo> breaks_;
   // hashmap of PC address to breakpoint info reference
-  std::unordered_map<VMAddr, BreakInfo *> pc_bp_;
+  std::unordered_map<vm::VMAddr, BreakInfo *> pc_bp_;
   // all watchpoints
   std::unordered_map<std::uint32_t, WatchInfo> watches_;
   // layout format
@@ -145,5 +147,7 @@ class MiniDebugger : public DebuggerBase {
   // source code reader
   SourceReader src_reader_;
 };
+
+}  // namespace minivm::debugger::minidbg
 
 #endif  // MINIVM_DEBUGGER_MINIDBG_MINIDBG_H_

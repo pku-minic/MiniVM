@@ -6,6 +6,8 @@
 #include <utility>
 #include <cassert>
 
+using namespace minivm::debugger::minidbg;
+
 void SourceReader::InitTotalLines() {
   total_lines_ = std::count(std::istreambuf_iterator<char>(ifs_),
                             std::istreambuf_iterator<char>(), '\n');
