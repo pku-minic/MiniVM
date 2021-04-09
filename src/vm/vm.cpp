@@ -7,6 +7,8 @@
 
 #include "xstl/style.h"
 
+using namespace minivm::vm;
+
 // assertion with VM runtime info
 #ifdef NDEBUG
 #define VM_ASSERT(e, code) static_cast<void>(e)
@@ -87,7 +89,7 @@ VMOpr &VM::GetOpr() {
   return oprs_.top();
 }
 
-VMOpr *VM::GetAddrById(MemId id) {
+VMOpr *VM::GetAddrById(mem::MemId id) {
   // find in memory pool
   auto ptr = mem_pool_->GetAddress(id);
   if (!ptr) {

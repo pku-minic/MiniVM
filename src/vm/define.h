@@ -38,6 +38,8 @@
 // goto a label of VM threading
 #define VM_GOTO(l)                goto VML_##l
 
+namespace minivm::vm {
+
 // length of VM instruction (in bits)
 constexpr std::size_t kVMInstLen = 32;
 // length of opcode field (in bits)
@@ -96,5 +98,7 @@ constexpr std::size_t kVMErrorExtFuncError = 156;
 constexpr std::size_t kVMErrorInvalidPCAddr = 157;
 // VM irrelevant error
 constexpr std::size_t kVMErrorVMIrrelevant = 255;
+
+}  // namespace minivm::vm
 
 #endif  // MINIVM_VM_DEFINE_H_

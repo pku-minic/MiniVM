@@ -7,6 +7,8 @@
 
 #include "xstl/style.h"
 
+using namespace minivm::vm;
+
 namespace {
 
 // string of all opcodes
