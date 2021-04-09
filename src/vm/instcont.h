@@ -16,6 +16,8 @@
 #include "vm/define.h"
 #include "vm/symbol.h"
 
+namespace minivm::vm {
+
 // container for storing VM instructions
 class VMInstContainer {
  public:
@@ -159,5 +161,7 @@ class VMInstContainer {
   // queue for step counters
   std::queue<std::pair<std::size_t, StepCallback>> step_counters_;
 };
+
+}  // namespace minivm::vm
 
 #endif  // MINIVM_VM_INSTCONT_H_

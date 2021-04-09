@@ -16,6 +16,8 @@
 #include "vm/instcont.h"
 #include "mem/pool.h"
 
+namespace minivm::vm {
+
 // MiniVM instance
 class VM {
  public:
@@ -44,7 +46,7 @@ class VM {
 
   // setters
   // set memory pool
-  void set_mem_pool(MemPoolPtr mem_pool) {
+  void set_mem_pool(mem::MemPoolPtr mem_pool) {
     mem_pool_ = std::move(mem_pool);
   }
   // set count of static registers
@@ -65,7 +67,7 @@ class VM {
   // operand stack
   std::stack<VMOpr> &oprs() { return oprs_; }
   // memory pool
-  const MemPoolPtr &mem_pool() const { return mem_pool_; }
+  const mem::MemPoolPtr &mem_pool() const { return mem_pool_; }
   // current environment & return address
   EnvAddrPair &env_addr_pair() { return envs_.top(); }
   // global environment
@@ -83,7 +85,7 @@ class VM {
   // get reference of the top of stack
   VMOpr &GetOpr();
   // get address of memory by id
-  VMOpr *GetAddrById(MemId id);
+  VMOpr *GetAddrById(mem::MemId id);
   // get address of memory by symbol
   VMOpr *GetAddrBySym(SymId sym);
   // make a new environment
@@ -100,7 +102,7 @@ class VM {
   // operand stack
   std::stack<VMOpr> oprs_;
   // memory pool
-  MemPoolPtr mem_pool_;
+  mem::MemPoolPtr mem_pool_;
   // environment stack
   std::stack<EnvAddrPair> envs_;
   // global environment
@@ -114,5 +116,7 @@ class VM {
   // error code
   std::size_t error_code_;
 };
+
+}  // namespace minivm::vm
 
 #endif  // MINIVM_VM_VM_H_

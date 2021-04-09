@@ -2,6 +2,8 @@
 
 #include <utility>
 
+using namespace minivm::vm;
+
 void SymbolPool::PushNewSymbol(std::string_view symbol) {
   auto sym_ptr = std::make_unique<char[]>(symbol.size() + 1);
   symbol.copy(sym_ptr.get(), symbol.size());

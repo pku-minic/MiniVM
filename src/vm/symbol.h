@@ -10,6 +10,8 @@
 
 #include "vm/define.h"
 
+namespace minivm::vm {
+
 // symbol pool, storing all symbols
 class SymbolPool {
  public:
@@ -35,5 +37,7 @@ class SymbolPool {
   std::unordered_map<std::string_view, SymId> defs_;
   std::vector<SymbolPtr> pool_;
 };
+
+}  // namespace minivm::vm
 
 #endif  // MINIVM_VM_SYMBOL_H_
