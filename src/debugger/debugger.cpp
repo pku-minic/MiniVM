@@ -11,6 +11,8 @@
 #include "readline/readline.h"
 #include "readline/history.h"
 
+using namespace minivm::debugger;
+
 // definition of all static members
 volatile std::sig_atomic_t DebuggerBase::sig_registered_ = 0;
 volatile std::sig_atomic_t DebuggerBase::sig_disabled_ = 0;

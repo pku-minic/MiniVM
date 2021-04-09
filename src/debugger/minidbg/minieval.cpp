@@ -3,6 +3,9 @@
 #include "front/token.h"
 #include "vm/define.h"
 
+using namespace minivm::debugger::minidbg;
+using namespace minivm::vm;
+
 namespace {
 
 // name of static registers

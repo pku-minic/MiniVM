@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <cstdint>
 
+namespace minivm::debugger::minidbg {
+
 // source file reader
 class SourceReader {
  public:
@@ -32,5 +34,7 @@ class SourceReader {
   // buffer of all read lines
   std::unordered_map<std::uint32_t, std::string> lines_;
 };
+
+}  // namespace minivm::debugger::minidbg
 
 #endif  // MINIVM_DEBUGGER_MINIDBG_SRCREADER_H_

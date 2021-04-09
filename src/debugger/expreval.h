@@ -19,6 +19,8 @@
 
 #include "xstl/guard.h"
 
+namespace minivm::debugger {
+
 // base class of expression evaluator
 template <typename ValType>
 class ExprEvaluatorBase {
@@ -433,5 +435,7 @@ class ExprEvaluatorBase {
   // current token
   Token cur_token_;
 };
+
+}  // namespace minivm::debugger
 
 #endif  // MINIVM_DEBUGGER_EXPREVAL_H_

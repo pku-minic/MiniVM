@@ -10,6 +10,8 @@
 #include <unordered_set>
 #include <csignal>
 
+namespace minivm::debugger {
+
 // command line interface of debugger
 class DebuggerBase {
  public:
@@ -90,5 +92,7 @@ class DebuggerBase {
   // abbreviation of commands
   std::unordered_map<std::string_view, const CmdInfo *> abbrs_;
 };
+
+}  // namespace minivm::debugger
 
 #endif  // MINIVM_DEBUGGER_DEBUGGER_H_

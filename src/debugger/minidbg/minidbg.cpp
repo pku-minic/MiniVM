@@ -16,6 +16,9 @@
 #include "front/token.h"
 #include "xstl/style.h"
 
+using namespace minivm::debugger::minidbg;
+using namespace minivm::vm;
+
 // create a new anonymous command handler
 #define CMD_HANDLER(func) [this](std::istream &is) { return func(is); }
 
