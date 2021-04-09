@@ -19,13 +19,16 @@ bool PrintFileError() {
 
 }  // namespace
 
+using namespace minivm::vm;
+
 // defined in Flex/Bison generated files
 extern std::FILE *eeyore_in;
 int eeyore_parse(void *cont);
 extern std::FILE *tigger_in;
 int tigger_parse(void *cont);
 
-bool ParseEeyore(std::string_view file, VMInstContainer &cont) {
+bool minivm::front::ParseEeyore(std::string_view file,
+                                VMInstContainer &cont) {
   if (!(eeyore_in = std::fopen(std::string(file).c_str(), "r"))) {
     return PrintFileError();
   }
@@ -36,7 +39,8 @@ bool ParseEeyore(std::string_view file, VMInstContainer &cont) {
   return !ret;
 }
 
-bool ParseTigger(std::string_view file, VMInstContainer &cont) {
+bool minivm::front::ParseTigger(std::string_view file,
+                                VMInstContainer &cont) {
   if (!(tigger_in = std::fopen(std::string(file).c_str(), "r"))) {
     return PrintFileError();
   }
