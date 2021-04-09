@@ -4,6 +4,8 @@
 #include <cstring>
 #include <cassert>
 
+using namespace minivm::mem;
+
 void DenseMemoryPool::FreeMems() {
   std::free(mems_);
 }

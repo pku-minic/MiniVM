@@ -4,6 +4,8 @@
 #include <memory>
 #include <cstdint>
 
+namespace minivm::mem {
+
 // type of memory id
 using MemId = std::uint32_t;
 
@@ -31,5 +33,7 @@ class MemoryPoolInterface {
 
 // pointer to memory pool
 using MemPoolPtr = std::unique_ptr<MemoryPoolInterface>;
+
+}  // namespace minivm::mem
 
 #endif  // MINIVM_MEM_POOL_H_

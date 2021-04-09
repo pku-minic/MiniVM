@@ -3,6 +3,8 @@
 #include <type_traits>
 #include <cassert>
 
+using namespace minivm::mem;
+
 namespace {
 
 // make a unique pointer of uninitialized array type
