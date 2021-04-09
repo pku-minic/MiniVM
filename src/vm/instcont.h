@@ -101,6 +101,8 @@ class VMInstContainer {
   std::string_view src_file() const { return src_file_; }
   // getter, instruction data
   const VMInst *insts() const { return insts_.data(); }
+  // getter, instruction count
+  std::size_t inst_count() const { return insts_.size(); }
 
   // instruction fetcher, for MiniVM instances
   //
