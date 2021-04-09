@@ -64,6 +64,7 @@ void CodeGenerator::Generate() {
   func_labels_.clear();
   funcs_.clear();
   main_func_.clear();
+  Reset();
   // generate labels & functions
   CollectLabelInfo();
   BuildFunctions();
