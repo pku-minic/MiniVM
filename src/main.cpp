@@ -19,6 +19,9 @@
 #endif
 
 using namespace std;
+using namespace minivm::vm;
+using namespace minivm::front;
+using namespace minivm::debugger::minidbg;
 
 namespace {
 

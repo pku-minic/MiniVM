@@ -10,6 +10,10 @@
 #include "mem/sparse.h"
 #include "mem/dense.h"
 
+using namespace minivm::vm;
+using namespace minivm::mem;
+using namespace minivm::front;
+
 // add all library functions to a VM instance
 #define ADD_LIBS(vm)                                     \
   do {                                                   \
