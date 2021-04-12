@@ -73,6 +73,7 @@ Details as follows:
 | StRegP  | `reg`     | val (preserved)   | preserve & store val to `reg`               |
 | Imm     | `imm`     | N/A               | load 24-bit `imm` to stack                  |
 | ImmHi   | `imm`     | val (preserved)   | load `imm`&255 to upper 8-bit of val        |
+| Pop     | N/A       | N/A               | discard the top value on the stack          |
 | Bnz     | `pc`      | cond              | jump to `pc` if cond is not zero            |
 | Jmp     | `pc`      | N/A               | jump to `pc`                                |
 | Call    | `pc`      | N/A               | call function at `pc`                       |
