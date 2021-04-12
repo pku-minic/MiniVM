@@ -11,7 +11,7 @@
   e(Var) e(Arr)                                         \
   /* load & store */                                    \
   e(Ld) e(LdVar) e(LdReg) e(St) e(StVar) e(StVarP)      \
-  e(StReg) e(StRegP) e(Imm) e(ImmHi)                    \
+  e(StReg) e(StRegP) e(Imm) e(ImmHi) e(Pop)             \
   /* control transfer (with absolute target address) */ \
   e(Bnz) e(Jmp)                                         \
   /* function call, with absolute target address        \
