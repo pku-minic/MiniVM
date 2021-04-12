@@ -154,20 +154,27 @@ void VMInstContainer::PushLoad(VMOpr imm) {
 void VMInstContainer::PushLdReg(RegId reg_id) {
   // check if last instruction is 'StReg reg_id'
   /* NOTE:
-   *  the 'StRegP sym' instruction can not be rewritten,
+   *  the 'StRegP reg' instruction can not be rewritten,
    *  consider the following Eeyore statement:
    *    t0 = t0 + t0
    */
   if (auto last = GetLastInst();
       last && last->op == static_cast<std::uint32_t>(InstOp::StReg)) {
-    // check if is the same register id
-    if (last->opr == reg_id) {
+    // check if is the same register id, but not 'x0'
+    if (reg_id && last->opr == reg_id) {
       // just rewrite last instruction as 'StRegP'
       last->op = static_cast<std::uint32_t>(InstOp::StRegP);
       return;
     }
   }
-  PushInst(InstOp::LdReg, reg_id);
+  // generate load register
+  if (reg_id) {
+    PushInst(InstOp::LdReg, reg_id);
+  }
+  else {
+    // loading 'x0', just load zero
+    PushInst(InstOp::Imm, 0);
+  }
 }
 
 void VMInstContainer::PushLdFrame(VMOpr offset) {
@@ -190,7 +197,13 @@ void VMInstContainer::PushStore(std::string_view sym) {
 }
 
 void VMInstContainer::PushStReg(RegId reg_id) {
-  PushInst(InstOp::StReg, reg_id);
+  if (reg_id) {
+    PushInst(InstOp::StReg, reg_id);
+  }
+  else {
+    // storing 'x0', discard the top value on the stack
+    PushInst(InstOp::Pop);
+  }
 }
 
 void VMInstContainer::PushStFrame(VMOpr offset) {
