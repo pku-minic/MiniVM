@@ -99,6 +99,8 @@ class VMInstContainer {
   std::optional<VMAddr> FindPC(std::string_view label) const;
   // query line number by pc
   std::optional<std::uint32_t> FindLineNum(VMAddr pc) const;
+  // getter, symbol pool
+  const SymbolPool &sym_pool() const { return sym_pool_; }
   // getter, path to source file
   std::string_view src_file() const { return src_file_; }
   // getter, instruction data
