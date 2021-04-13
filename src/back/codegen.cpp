@@ -51,7 +51,7 @@ void CodeGenerator::BuildFunctions() {
       cur_func = &entry_func_;
     }
     else if (func_labels_.count(i)) {
-      cur_func = &funcs_.emplace_back();
+      cur_func = &funcs_.emplace_back(i, FuncBody()).second;
     }
     // push instruction to the current function
     cur_func->push_back(cont_.insts()[i]);
@@ -69,8 +69,8 @@ void CodeGenerator::Generate() {
   CollectLabelInfo();
   BuildFunctions();
   // generate on all functions
-  for (const auto &func : funcs_) {
-    GenerateOnFunc(func);
+  for (const auto &[pc, func] : funcs_) {
+    GenerateOnFunc(pc, func);
   }
   GenerateOnEntry(entry_func_);
 }

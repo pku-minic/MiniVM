@@ -3,6 +3,7 @@
 
 #include <ostream>
 #include <vector>
+#include <utility>
 #include <unordered_set>
 
 #include "vm/instcont.h"
@@ -31,7 +32,7 @@ class CodeGenerator {
   // reset internal state
   virtual void Reset() {};
   // generate code on function
-  virtual void GenerateOnFunc(const FuncBody &func) = 0;
+  virtual void GenerateOnFunc(vm::VMAddr pc, const FuncBody &func) = 0;
   // generate code on entry function
   virtual void GenerateOnEntry(const FuncBody &func) = 0;
 
@@ -53,7 +54,7 @@ class CodeGenerator {
   // label of entry function
   vm::VMAddr entry_label_;
   // functions
-  std::vector<FuncBody> funcs_;
+  std::vector<std::pair<vm::VMAddr, FuncBody>> funcs_;
   // entry function
   FuncBody entry_func_;
 };
