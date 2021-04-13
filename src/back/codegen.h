@@ -32,8 +32,8 @@ class CodeGenerator {
   virtual void Reset() {};
   // generate code on function
   virtual void GenerateOnFunc(const FuncBody &func) = 0;
-  // generate code on main function
-  virtual void GenerateOnMain(const FuncBody &func) = 0;
+  // generate code on entry function
+  virtual void GenerateOnEntry(const FuncBody &func) = 0;
 
   // getters
   const vm::VMInstContainer &cont() const { return cont_; }
@@ -50,12 +50,12 @@ class CodeGenerator {
   std::unordered_set<vm::VMAddr> labels_;
   // function labels
   std::unordered_set<vm::VMAddr> func_labels_;
-  // label of main function
-  vm::VMAddr main_label_;
+  // label of entry function
+  vm::VMAddr entry_label_;
   // functions
   std::vector<FuncBody> funcs_;
-  // main function
-  FuncBody main_func_;
+  // entry function
+  FuncBody entry_func_;
 };
 
 }  // namespace minivm::back
