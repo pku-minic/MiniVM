@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include <sstream>
+#include <cstdint>
 
 #include "back/codegen.h"
 #include "debugger/minidbg/srcreader.h"
@@ -35,6 +36,8 @@ class CCodeGen : public CodeGenerator {
   bool tigger_mode_;
   // string stream for storing generated C code
   std::ostringstream global_, code_;
+  // last line position
+  std::uint32_t last_line_;
   // source file reader
   debugger::minidbg::SourceReader src_reader_;
 };
