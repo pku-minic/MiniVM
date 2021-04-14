@@ -72,12 +72,16 @@ if(NOT NO_DEBUGGER)
   include_directories(${Readline_INCLUDE_DIR})
 endif()
 
+# embedded text files
+file(GLOB_RECURSE EMBEDDED_FILES "src/back/c/embed/*.c")
+
 # all of C++ source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE DEBUGGER_SRCS "src/debugger/*.cpp")
 if (NO_DEBUGGER)
   list(REMOVE_ITEM SOURCES ${DEBUGGER_SRCS})
 endif()
+list(REMOVE_ITEM SOURCES ${EMBEDDED_FILES})
 set(SOURCES ${SOURCES} ${FLEX_EeyoreLexer_OUTPUTS}
     ${BISON_EeyoreParser_OUTPUT_SOURCE})
 set(SOURCES ${SOURCES} ${FLEX_TiggerLexer_OUTPUTS}
