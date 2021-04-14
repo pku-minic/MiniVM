@@ -3,6 +3,7 @@
 
 #include <ostream>
 #include <vector>
+#include <string_view>
 #include <utility>
 #include <unordered_set>
 
@@ -22,12 +23,17 @@ class CodeGenerator {
   // dump generated code to the specific stream
   virtual void Dump(std::ostream &os) const = 0;
 
+  // getters
+  bool has_error() const { return has_error_; }
+
  protected:
   // function body
   using FuncBody = std::vector<vm::VMInst>;
 
   // check if there is a label on the specific address
   bool IsLabel(vm::VMAddr addr) const { return labels_.count(addr); }
+  // print error message to stderr
+  void LogError(std::string_view message, vm::VMAddr pc);
 
   // reset internal state
   virtual void Reset() {};
@@ -47,6 +53,8 @@ class CodeGenerator {
 
   // instruction container
   const vm::VMInstContainer &cont_;
+  // error flag
+  bool has_error_;
   // label definitions
   std::unordered_set<vm::VMAddr> labels_;
   // function labels

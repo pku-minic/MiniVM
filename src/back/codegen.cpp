@@ -1,7 +1,10 @@
 #include "back/codegen.h"
 
+#include <iostream>
 #include <cassert>
 #include <cstddef>
+
+#include "xstl/style.h"
 
 using namespace minivm::back;
 using namespace minivm::vm;
@@ -58,8 +61,25 @@ void CodeGenerator::BuildFunctions() {
   }
 }
 
+void CodeGenerator::LogError(std::string_view message, vm::VMAddr pc) {
+  using namespace xstl;
+  std::cerr << style("Br") << "error ";
+  // try to get line number
+  auto line_num = cont_.FindLineNum(pc);
+  if (line_num) {
+    std::cerr << style("B") << "(line " << *line_num << "): ";
+  }
+  else {
+    std::cerr << style("B") << "(pc " << pc << "): ";
+  }
+  // print error message
+  std::cerr << message << std::endl;
+  has_error_ = true;
+}
+
 void CodeGenerator::Generate() {
   // reset internal state
+  has_error_ = false;
   labels_.clear();
   func_labels_.clear();
   funcs_.clear();
