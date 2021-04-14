@@ -11,6 +11,7 @@
 #include "version.h"
 #include "vm/symbol.h"
 #include "vm/instcont.h"
+#include "back/c/codegen.h"
 #include "front/wrapper.h"
 #include "vm/vm.h"
 #include "vmconf.h"
@@ -20,6 +21,7 @@
 
 using namespace std;
 using namespace minivm::vm;
+using namespace minivm::back::c;
 using namespace minivm::front;
 using namespace minivm::debugger::minidbg;
 
@@ -40,6 +42,8 @@ xstl::ArgParser GetArgp() {
                        false);
   // TODO: implement this option
   argp.AddOption<bool>("dump-bytecode", "db", "dump bytecode to output",
+                       false);
+  argp.AddOption<bool>("compile", "c", "compile input file to C code",
                        false);
   return argp;
 }
@@ -73,13 +77,22 @@ void ParseArgument(xstl::ArgParser &argp, int argc, const char *argv[]) {
 }
 
 optional<VMOpr> RunVM(xstl::ArgParser &argp, string_view file, ostream &os,
-                      Parser parser, VMInit vm_init) {
+                      Parser parser, VMInit vm_init, bool tigger_mode) {
   SymbolPool symbols;
   VMInstContainer cont(symbols, file);
   // parse input file
   if (!parser(file, cont)) return {};
   if (argp.GetValue<bool>("dump-gopher")) {
+    // dump Gopher
     cont.Dump(os);
+    return 0;
+  }
+  else if (argp.GetValue<bool>("compile")) {
+    // compile to C code
+    CCodeGen gen(cont, tigger_mode);
+    gen.Generate();
+    if (gen.has_error()) return {};
+    gen.Dump(os);
     return 0;
   }
   // run MiniVM
@@ -112,12 +125,12 @@ optional<VMOpr> RunVM(xstl::ArgParser &argp, string_view file, ostream &os,
 
 optional<VMOpr> RunEeyore(xstl::ArgParser &argp, string_view file,
                           ostream &os) {
-  return RunVM(argp, file, os, ParseEeyore, InitEeyoreVM);
+  return RunVM(argp, file, os, ParseEeyore, InitEeyoreVM, false);
 }
 
 optional<VMOpr> RunTigger(xstl::ArgParser &argp, string_view file,
                           ostream &os) {
-  return RunVM(argp, file, os, ParseTigger, InitTiggerVM);
+  return RunVM(argp, file, os, ParseTigger, InitTiggerVM, true);
 }
 
 }  // namespace
