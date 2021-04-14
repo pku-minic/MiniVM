@@ -1,3 +1,5 @@
+#include <assert.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,8 +80,13 @@ static void DestructVM() {
   free(mem_pool);
 }
 
-inline void PushValue(vmopr_t val) { opr_stack[stack_sp++] = val; }
-inline vmopr_t PopValue() { return opr_stack[--stack_sp]; }
+#define INLINE static inline __attribute__((always_inline))
+INLINE void PushValue(vmopr_t val) { opr_stack[stack_sp++] = val; }
+INLINE void PokeValue(vmopr_t val) { opr_stack[stack_sp - 1] = val; }
+INLINE vmopr_t PopValue() { return opr_stack[--stack_sp]; }
+INLINE vmopr_t PeekValue() { return opr_stack[stack_sp - 1]; }
+INLINE size_t StackSize() { return stack_sp; }
+INLINE void Break() { raise(SIGTRAP); }
 
 #define APPLY(x) x
 #define READ_PARAMS_IMPL(N, ...) APPLY(READ_PARAMS_##N(__VA_ARGS__))
@@ -140,7 +147,7 @@ static void f_putarray() {
   READ_PARAMS(2, len, arr);
   printf("%d:", len);
   for (int i = 0; i < len; ++i) {
-    printf(" %d", mem_pool[arr + i]);
+    printf(" %d", *(vmopr_t *)(mem_pool + arr + i * 4));
   }
   printf("\n");
 }
@@ -188,9 +195,9 @@ int main(int argc, const char *argv[]) {
       }
     }
   }
-  vmopr_t VMEntry();
+  void VMEntry();
   InitVM(stack_size, mem_pool_size);
-  vmopr_t ret = VMEntry();
+  VMEntry();
   DestructVM();
-  return ret;
+  return PopValue();
 }
