@@ -53,12 +53,18 @@ std::optional<std::string> CCodeGen::GetSymbol(SymId sym_id, VMAddr pc) {
     LogError("symbol not found", pc);
     return {};
   }
-  // convert parameter symbol to array access
   if (sym->front() == 'p') {
+    // convert parameter symbol to array access
     std::string ret = kPrefixParams;
     ret += '[';
     ret += sym->substr(1);
     ret += ']';
+    return ret;
+  }
+  else if (sym->front() == '$') {
+    // handle symbol starting with '$'
+    std::string ret = "builtin_";
+    ret += sym->substr(1);
     return ret;
   }
   else {
