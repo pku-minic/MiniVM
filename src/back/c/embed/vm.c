@@ -201,5 +201,9 @@ int main(int argc, const char *argv[]) {
   InitVM(stack_size, mem_pool_size);
   VMEntry();
   DestructVM();
+#ifdef TIGGER_MODE
+  return regs[RET_REG_ID];
+#else
   return PopValue();
+#endif
 }
