@@ -8,11 +8,14 @@
 using namespace minivm::back::c;
 using namespace minivm::vm;
 
-namespace {
-
 // embbedded C code snippets
-const char *kCCodeTiggerMode = "#define TIGGER_MODE\n";
+static const char *kCCodeTiggerMode = "#define TIGGER_MODE\n";
 XSTL_EMBED_STR(kCCodeVM, "back/c/embed/vm.c");
+#ifdef LET_CMAKE_KNOW_THERE_IS_A_EMBEDDED_FILE
+#include "back/c/embed/vm.c"
+#endif
+
+namespace {
 
 // indention
 constexpr const char *kIndent = "  ";
@@ -66,17 +69,18 @@ std::optional<std::string> CCodeGen::GetSymbol(SymId sym_id, VMAddr pc) {
 std::optional<std::string> CCodeGen::GenerateInst(VMAddr pc,
                                                   const VMInst &inst) {
   std::ostringstream oss;
-  // generate line info
-  auto line = cont().FindLineNum(pc);
-  if (line) {
-    oss << "#line " << *line << " \"" << cont().src_file() << "\"\n";
-    auto src = src_reader_.ReadLine(*line);
-    if (src) oss << kIndent << "// " << *src << '\n';
-  }
   // generate pc info
   oss << kIndent << "// pc: " << pc << '\n';
+  // generate line info
+  auto line = cont().FindLineNum(pc);
+  if (line && *line != last_line_) {
+    last_line_ = *line;
+    auto src = src_reader_.ReadLine(*line);
+    if (src) oss << kIndent << "// " << *src << '\n';
+    oss << "#line " << *line << " \"" << cont().src_file() << "\"\n";
+  }
   // generate label
-  if (IsLabel(pc)) oss << kPrefixLabel << pc << '\n';
+  if (IsLabel(pc)) oss << kPrefixLabel << pc << ":\n";
   // generate instruction
   auto opcode = static_cast<InstOp>(inst.op);
   switch (opcode) {
@@ -204,7 +208,7 @@ std::optional<std::string> CCodeGen::GenerateInst(VMAddr pc,
       else {
         // binary operation
         oss << kIndent << "{\n";
-        oss << kIndent2 << "vmopt_t rhs = " << kStackPop << ";\n";
+        oss << kIndent2 << "vmopr_t rhs = " << kStackPop << ";\n";
         oss << kIndent2 << kStackPoke << '(' << kStackPeek << ' ';
         switch (opcode) {
           case InstOp::LAnd: oss << "&&"; break;
@@ -235,6 +239,7 @@ void CCodeGen::Reset() {
   global_.clear();
   code_.str("");
   code_.clear();
+  last_line_ = 0;
   // add code snippets
   if (tigger_mode_) global_ << kCCodeTiggerMode;
   global_ << kCCodeVM << '\n';
@@ -308,6 +313,7 @@ void CCodeGen::GenerateOnEntry(VMAddr pc, const FuncBody &func) {
   code_ << "void " << kEntryFunc << "() {\n";
   code_ << body.str() << '\n';
   code_ << kLabelFuncEnd << ":\n";
+  code_ << kIndent << "(void)0;\n";
   code_ << "}\n\n";
 }
 
