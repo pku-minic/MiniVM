@@ -62,7 +62,7 @@ static void PrintTime(uint64_t us) {
   uint64_t kSecond = 1000 * 1000;
   uint64_t kMinute = 60 * kSecond;
   uint64_t kHour = 60 * kMinute;
-  fprintf(stderr, "%dH-%dM-%dS-%dus\n", us / kHour, us / kMinute,
+  fprintf(stderr, "%lluH-%lluM-%lluS-%lluus\n", us / kHour, us / kMinute,
           us / kSecond, us % kSecond);
 }
 
@@ -131,7 +131,7 @@ static void f_getarray() {
   vmopr_t len;
   scanf("%d", &len);
   for (int i = 0; i < len; ++i) {
-    scanf("%d", mem_pool + arr + i);
+    scanf("%d", (vmopr_t *)(mem_pool + arr + i));
   }
   RETURN(len);
 }
@@ -164,7 +164,7 @@ static void f__sysy_stoptime() {
   gettimeofday(&tv, NULL);
   uint64_t us = (1000000 * tv.tv_sec + tv.tv_usec) - last_time_us;
   total_time_us += us;
-  fprintf(stderr, "Timer#03zu@%04zu-%04d: ", timer_id++, last_line, line);
+  fprintf(stderr, "Timer#%03zu@%04zu-%04d: ", timer_id++, last_line, line);
   PrintTime(us);
 }
 
@@ -179,6 +179,7 @@ int main(int argc, const char *argv[]) {
             "          [-m SIZE | --mem-pool-size SIZE]\n"
             "          [-s SIZE | --stack-size SIZE]\n",
             argv[0]);
+        return 0;
       }
       else if ((!strcmp(argv[i], "-m") ||
                 !strcmp(argv[i], "--mem-pool-size")) &&
@@ -192,6 +193,7 @@ int main(int argc, const char *argv[]) {
       }
       else {
         printf("Invalid argument, try '%s -h'.\n", argv[0]);
+        return 1;
       }
     }
   }
