@@ -4,6 +4,10 @@ All notable changes to the MiniVM will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+* Made GCC/G++ happy.
+
 ## 0.1.1 - 2021-04-08
 
 ### Fixed
