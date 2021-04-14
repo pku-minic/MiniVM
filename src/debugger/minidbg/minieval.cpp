@@ -32,7 +32,7 @@ std::optional<VMOpr> MiniEvaluator::GetRegVal(std::string_view reg) {
   }
   else {
     // check if in Tigger mode
-    const auto &[env, _] = vm_.env_addr_pair();
+    const auto &env = vm_.env_addr_pair().first;
     auto id = vm_.sym_pool().FindId(kVMFrame);
     if (!id || env->find(*id) == env->end()) return {};
     // find register by name
