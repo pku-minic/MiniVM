@@ -74,8 +74,12 @@ include_directories(3rdparty/xstl)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${Readline_INCLUDE_DIR})
 
+# embedded text files
+file(GLOB_RECURSE EMBEDDED_FILES "src/back/c/embed/*.c")
+
 # all of C++ source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
+list(REMOVE_ITEM SOURCES ${EMBEDDED_FILES})
 set(SOURCES ${SOURCES} ${FLEX_EeyoreLexer_OUTPUTS}
     ${BISON_EeyoreParser_OUTPUT_SOURCE})
 set(SOURCES ${SOURCES} ${FLEX_TiggerLexer_OUTPUTS}
