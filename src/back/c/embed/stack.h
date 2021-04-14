@@ -1,12 +1,15 @@
 #pragma once
 #include <stdlib.h>
-#include <stdint.h>
 #include <stddef.h>
+
+#ifndef CBACKEND
+#include "define.h"
+#endif
 
 const size_t kMaxFrameSize = 512;
 
 typedef struct StackFrame {
-  int32_t data[kMaxFrameSize];
+  vmopr_t data[kMaxFrameSize];
   size_t sp;
   struct StackFrame *last;
 } StackFrame;
@@ -27,7 +30,7 @@ static void DeleteStack(StackFrame **sref) {
   }
 }
 
-static void StackPush(StackFrame **sref, int32_t val) {
+static void StackPush(StackFrame **sref, vmopr_t val) {
   StackFrame *s = *sref;
   s->data[s->sp++] = val;
   if (s->sp >= kMaxFrameSize) {
@@ -37,7 +40,7 @@ static void StackPush(StackFrame **sref, int32_t val) {
   }
 }
 
-static int32_t StackPop(StackFrame **sref) {
+static vmopr_t StackPop(StackFrame **sref) {
   StackFrame *s = *sref;
   if (!s->sp) {
     *sref = s->last;
