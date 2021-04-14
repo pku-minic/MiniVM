@@ -40,7 +40,7 @@ class CodeGenerator {
   // generate code on function
   virtual void GenerateOnFunc(vm::VMAddr pc, const FuncBody &func) = 0;
   // generate code on entry function
-  virtual void GenerateOnEntry(const FuncBody &func) = 0;
+  virtual void GenerateOnEntry(vm::VMAddr pc, const FuncBody &func) = 0;
 
   // getters
   const vm::VMInstContainer &cont() const { return cont_; }

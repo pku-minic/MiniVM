@@ -92,5 +92,5 @@ void CodeGenerator::Generate() {
   for (const auto &[pc, func] : funcs_) {
     GenerateOnFunc(pc, func);
   }
-  GenerateOnEntry(entry_func_);
+  GenerateOnEntry(entry_label_, entry_func_);
 }
