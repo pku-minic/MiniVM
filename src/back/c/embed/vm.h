@@ -50,7 +50,7 @@ static uint64_t last_time_us, total_time_us = 0;
 #ifndef RET_REG_ID
 #define RET_REG_ID 20
 #endif
-static int32_t regs[REG_COUNT];
+static vmopr_t regs[REG_COUNT];
 #endif
 
 static void PrintTime(uint64_t us) {
@@ -79,7 +79,7 @@ static void DestructVM() {
 #define APPLY(x) x
 #define READ_PARAMS_IMPL(N, ...) APPLY(READ_PARAMS_##N(__VA_ARGS__))
 #ifdef TIGGER_MODE
-#define READ_PARAM(x) int32_t x = *__cur_arg++;
+#define READ_PARAM(x) vmopr_t x = *__cur_arg++;
 #define RETURN(x) regs[RET_REG_ID] = (x);
 #define READ_PARAMS_1(a) READ_PARAM(a)
 #define READ_PARAMS_2(a, b) READ_PARAM(a) READ_PARAM(b)
@@ -90,10 +90,10 @@ static void DestructVM() {
 #define READ_PARAMS_5(a, ...) \
   READ_PARAM(a) APPLY(READ_PARAMS_4(__VA_ARGS__))
 #define READ_PARAMS(N, ...)               \
-  int32_t *__cur_arg = regs + ARG_REG_ID; \
+  vmopr_t *__cur_arg = regs + ARG_REG_ID; \
   READ_PARAMS_IMPL(N, __VA_ARGS__)
 #else
-#define READ_PARAM(x) int32_t x = StackPop(&opr_stack);
+#define READ_PARAM(x) vmopr_t x = StackPop(&opr_stack);
 #define RETURN(x) StackPush(&opr_stack, x)
 #define READ_PARAMS_1(a) READ_PARAM(a)
 #define READ_PARAMS_2(a, b) READ_PARAM(b) READ_PARAM(a)
@@ -107,7 +107,7 @@ static void DestructVM() {
 #endif
 
 static void f_getint() {
-  int32_t val;
+  vmopr_t val;
   scanf("%d", &val);
   RETURN(val);
 }
@@ -116,7 +116,7 @@ static void f_getch() {
 }
 static void f_getarray() {
   READ_PARAMS(1, arr);
-  int32_t len;
+  vmopr_t len;
   scanf("%d", &len);
   for (int i = 0; i < len; ++i) {
     scanf("%d", mem_pool + arr + i);
@@ -177,9 +177,9 @@ int main(int argc, const char *argv[]) {
       }
     }
   }
-  int32_t VMEntry();
+  vmopr_t VMEntry();
   InitVM(mem_pool_size);
-  int32_t ret = VMEntry();
+  vmopr_t ret = VMEntry();
   DestructVM();
   return ret;
 }
