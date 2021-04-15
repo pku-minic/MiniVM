@@ -78,6 +78,7 @@ void VMInstContainer::Reset(std::string_view src_file) {
   line_defs_.clear();
   pc_defs_.clear();
   label_defs_.clear();
+  func_pcs_.clear();
   insts_.clear();
   global_insts_.clear();
   breakpoints_.clear();
@@ -282,6 +283,8 @@ void VMInstContainer::EnterFunc(std::uint32_t param_count) {
     auto param = "p" + std::to_string(i);
     DefSymbol(param);
   }
+  // log function definition
+  func_pcs_.insert(insts_.size());
 }
 
 void VMInstContainer::EnterFunc(std::uint32_t param_count,

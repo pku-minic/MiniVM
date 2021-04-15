@@ -107,6 +107,8 @@ class VMInstContainer {
   const VMInst *insts() const { return insts_.data(); }
   // getter, instruction count
   std::size_t inst_count() const { return insts_.size(); }
+  // getter, pc of all defined functions
+  const std::unordered_set<VMAddr> func_pcs() const { return func_pcs_; }
 
   // instruction fetcher, for MiniVM instances
   //
@@ -155,6 +157,8 @@ class VMInstContainer {
   std::unordered_map<std::string, BackfillInfo> label_defs_;
   // last defined label
   std::string_view last_label_;
+  // pc of all defined functions
+  std::unordered_set<VMAddr> func_pcs_;
   // all instructions
   std::vector<VMInst> insts_, global_insts_;
   // all breakpoints
