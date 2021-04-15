@@ -46,7 +46,7 @@ class CodeGenerator {
   const vm::VMInstContainer &cont() const { return cont_; }
 
  private:
-  // collect all label/function information
+  // collect all label information
   void CollectLabelInfo();
   // split code into functions
   void BuildFunctions();
@@ -57,10 +57,8 @@ class CodeGenerator {
   bool has_error_;
   // label definitions
   std::unordered_set<vm::VMAddr> labels_;
-  // function labels
-  std::unordered_set<vm::VMAddr> func_labels_;
-  // label of entry function
-  vm::VMAddr entry_label_;
+  // pc of entry function
+  vm::VMAddr entry_pc_;
   // functions
   std::vector<std::pair<vm::VMAddr, FuncBody>> funcs_;
   // entry function
