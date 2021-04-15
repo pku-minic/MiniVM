@@ -260,7 +260,7 @@ void CCodeGen::GenerateOnFunc(VMAddr pc, const FuncBody &func) {
     ++cur_pc;
   }
   // generate function
-  code_ << "void " << kPrefixFunc << pc << "() {\n";
+  code_ << "static void " << kPrefixFunc << pc << "() {\n";
   code_ << kIndent << "vmaddr_t pool_bp = pool_sp;\n";
   if (!tigger_mode_) {
     code_ << kIndent << "vmopr_t *" << kPrefixParams
@@ -317,7 +317,7 @@ void CCodeGen::GenerateOnEntry(VMAddr pc, const FuncBody &func) {
     ++cur_pc;
   }
   // generate functions
-  code_ << "void " << kEntryFunc << "() {\n";
+  code_ << "static void " << kEntryFunc << "() {\n";
   code_ << body.str() << '\n';
   code_ << kLabelFuncEnd << ":\n";
   code_ << kIndent << "(void)0;\n";
