@@ -72,9 +72,8 @@ std::optional<std::string> CCodeGen::GetSymbol(SymId sym_id, VMAddr pc) {
   }
 }
 
-std::optional<std::string> CCodeGen::GenerateInst(VMAddr pc,
-                                                  const VMInst &inst) {
-  std::ostringstream oss;
+bool CCodeGen::GenerateInst(std::ostringstream &oss, VMAddr pc,
+                            const VMInst &inst) {
   // generate pc info
   oss << kIndent << "// pc: " << pc << '\n';
   // generate line info
@@ -93,7 +92,7 @@ std::optional<std::string> CCodeGen::GenerateInst(VMAddr pc,
     case InstOp::Var: {
       // get symbol of variable
       auto sym = GetSymbol(inst.opr, pc);
-      if (!sym) return {};
+      if (!sym) return false;
       // emit C code
       oss << kIndent << "vmopr_t " << *sym << ";\n";
       break;
@@ -101,7 +100,7 @@ std::optional<std::string> CCodeGen::GenerateInst(VMAddr pc,
     case InstOp::Arr: {
       // get symbol of array
       auto sym = GetSymbol(inst.opr, pc);
-      if (!sym) return {};
+      if (!sym) return false;
       // emit C code
       oss << kIndent << "vmaddr_t " << *sym << " = pool_sp;\n";
       oss << kIndent << "pool_sp += " << kStackPop << ";\n";
@@ -115,7 +114,7 @@ std::optional<std::string> CCodeGen::GenerateInst(VMAddr pc,
     case InstOp::LdVar: {
       // get symbol of variable
       auto sym = GetSymbol(inst.opr, pc);
-      if (!sym) return {};
+      if (!sym) return false;
       // emit C code
       oss << kIndent << kStackPush << '(' << *sym << ");\n";
       break;
@@ -135,7 +134,7 @@ std::optional<std::string> CCodeGen::GenerateInst(VMAddr pc,
     case InstOp::StVar: {
       // get symbol of variable
       auto sym = GetSymbol(inst.opr, pc);
-      if (!sym) return {};
+      if (!sym) return false;
       // emit C code
       oss << kIndent << *sym << " = " << kStackPop << ";\n";
       break;
@@ -143,7 +142,7 @@ std::optional<std::string> CCodeGen::GenerateInst(VMAddr pc,
     case InstOp::StVarP: {
       // get symbol of variable
       auto sym = GetSymbol(inst.opr, pc);
-      if (!sym) return {};
+      if (!sym) return false;
       // emit C code
       oss << kIndent << *sym << " = " << kStackPeek << ";\n";
       break;
@@ -190,7 +189,7 @@ std::optional<std::string> CCodeGen::GenerateInst(VMAddr pc,
     case InstOp::CallExt: {
       // get symbol of function
       auto sym = GetSymbol(inst.opr, pc);
-      if (!sym) return {};
+      if (!sym) return false;
       // emit C code
       oss << kIndent << *sym << "();\n";
       break;
@@ -237,10 +236,11 @@ std::optional<std::string> CCodeGen::GenerateInst(VMAddr pc,
       }
     }
   }
-  return oss.str();
+  return true;
 }
 
 void CCodeGen::Reset() {
+  // reset internal state
   global_.str("");
   global_.clear();
   code_.str("");
@@ -256,9 +256,7 @@ void CCodeGen::GenerateOnFunc(VMAddr pc, const FuncBody &func) {
   auto cur_pc = pc;
   std::ostringstream body;
   for (const auto &inst : func) {
-    auto code = GenerateInst(cur_pc, inst);
-    if (!code) return;
-    body << *code;
+    if (!GenerateInst(body, cur_pc, inst)) return;
     ++cur_pc;
   }
   // generate function
@@ -311,9 +309,7 @@ void CCodeGen::GenerateOnEntry(VMAddr pc, const FuncBody &func) {
       }
       // other instructions
       default: {
-        auto code = GenerateInst(cur_pc, inst);
-        if (!code) return;
-        body << *code;
+        if (!GenerateInst(body, cur_pc, inst)) return;
         break;
       }
     }

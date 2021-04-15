@@ -28,9 +28,10 @@ class CCodeGen : public CodeGenerator {
  private:
   // get symbol name for C code generation
   std::optional<std::string> GetSymbol(vm::SymId sym_id, vm::VMAddr pc);
+  // push value to stack
   // generate instruction
-  std::optional<std::string> GenerateInst(vm::VMAddr pc,
-                                          const vm::VMInst &inst);
+  bool GenerateInst(std::ostringstream &oss, vm::VMAddr pc,
+                    const vm::VMInst &inst);
 
   // generate Tigger mode code
   bool tigger_mode_;
