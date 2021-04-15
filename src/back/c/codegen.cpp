@@ -264,13 +264,18 @@ void CCodeGen::GenerateOnFunc(VMAddr pc, const FuncBody &func) {
   // generate function
   code_ << "void " << kPrefixFunc << pc << "() {\n";
   code_ << kIndent << "vmaddr_t pool_bp = pool_sp;\n";
-  code_ << kIndent << "vmopr_t *" << kPrefixParams
-       << " = (vmopr_t *)(mem_pool + pool_sp);\n";
-  code_ << kIndent << "pool_sp += " << kStackSize << " * 4;\n";
-  code_ << kIndent << "while (" << kStackSize << ") {\n";
-  code_ << kIndent2 << "size_t index = " << kStackSize << " - 1;\n";
-  code_ << kIndent2 << kPrefixParams << "[index] = " << kStackPop << ";\n";
-  code_ << kIndent << "}\n\n";
+  if (!tigger_mode_) {
+    code_ << kIndent << "vmopr_t *" << kPrefixParams
+          << " = (vmopr_t *)(mem_pool + pool_sp);\n";
+    code_ << kIndent << "pool_sp += " << kStackSize << " * 4;\n";
+    code_ << kIndent << "while (" << kStackSize << ") {\n";
+    code_ << kIndent2 << "size_t i = " << kStackSize << " - 1;\n";
+    code_ << kIndent2 << kPrefixParams << "[i] = " << kStackPop << ";\n";
+    code_ << kIndent << "}\n\n";
+  }
+  else {
+    code_ << '\n';
+  }
   code_ << body.str() << '\n';
   code_ << kLabelFuncEnd << ":\n";
   code_ << kIndent << "pool_sp = pool_bp;\n";
