@@ -1,6 +1,6 @@
 #include <assert.h>
+#include <inttypes.h>
 #include <signal.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +33,7 @@ static int gettimeofday(struct timeval *tp, struct timezone *tzp) {
 #define STACK_SIZE 4096
 #endif
 #ifndef MEM_POOL_SIZE
-#define MEM_POOL_SIZE 4096
+#define MEM_POOL_SIZE 1048576
 #endif
 
 typedef int32_t vmopr_t;
@@ -59,11 +59,15 @@ static vmopr_t regs[REG_COUNT];
 #endif
 
 static void PrintTime(uint64_t us) {
-  uint64_t kSecond = 1000 * 1000;
-  uint64_t kMinute = 60 * kSecond;
-  uint64_t kHour = 60 * kMinute;
-  fprintf(stderr, "%lluH-%lluM-%lluS-%lluus\n", us / kHour, us / kMinute,
-          us / kSecond, us % kSecond);
+  const uint64_t kSecond = 1000 * 1000;
+  const uint64_t kMinute = 60 * kSecond;
+  const uint64_t kHour = 60 * kMinute;
+  uint64_t h = us / kHour;
+  us %= kHour;
+  uint64_t m = us / kMinute;
+  us %= kMinute;
+  fprintf(stderr, "%" PRIu64 "H-%" PRIu64 "M-%" PRIu64 "S-%" PRIu64 "us\n",
+          h, m, us / kSecond, us % kSecond);
 }
 
 static void InitVM(size_t stack_size, size_t mem_pool_size) {
@@ -120,7 +124,7 @@ INLINE void Break() { raise(SIGTRAP); }
 
 static void f_getint() {
   vmopr_t val;
-  scanf("%d", &val);
+  scanf("%" SCNd32, &val);
   RETURN(val);
 }
 static void f_getch() {
@@ -129,25 +133,25 @@ static void f_getch() {
 static void f_getarray() {
   READ_PARAMS(1, arr);
   vmopr_t len;
-  scanf("%d", &len);
+  scanf("%" SCNd32, &len);
   for (int i = 0; i < len; ++i) {
-    scanf("%d", (vmopr_t *)(mem_pool + arr + i));
+    scanf("%" SCNd32, (vmopr_t *)(mem_pool + arr + i));
   }
   RETURN(len);
 }
 static void f_putint() {
   READ_PARAMS(1, val);
-  printf("%d", val);
+  printf("%" PRId32, val);
 }
 static void f_putch() {
   READ_PARAMS(1, val);
-  printf("%c", val);
+  putchar(val);
 }
 static void f_putarray() {
   READ_PARAMS(2, len, arr);
-  printf("%d:", len);
+  printf("%" PRId32 ":", len);
   for (int i = 0; i < len; ++i) {
-    printf(" %d", *(vmopr_t *)(mem_pool + arr + i * 4));
+    printf(" %" PRId32, *(vmopr_t *)(mem_pool + arr + i * 4));
   }
   printf("\n");
 }
@@ -164,7 +168,8 @@ static void f__sysy_stoptime() {
   gettimeofday(&tv, NULL);
   uint64_t us = (1000000 * tv.tv_sec + tv.tv_usec) - last_time_us;
   total_time_us += us;
-  fprintf(stderr, "Timer#%03zu@%04zu-%04d: ", timer_id++, last_line, line);
+  fprintf(stderr, "Timer#%03zu@%04zu-%04" PRId32 ": ", timer_id++,
+          last_line, line);
   PrintTime(us);
 }
 
@@ -200,10 +205,12 @@ int main(int argc, const char *argv[]) {
   void VMEntry();
   InitVM(stack_size, mem_pool_size);
   VMEntry();
-  DestructVM();
+  vmopr_t ret;
 #ifdef TIGGER_MODE
-  return regs[RET_REG_ID];
+  ret = regs[RET_REG_ID];
 #else
-  return PopValue();
+  ret = PopValue();
 #endif
+  DestructVM();
+  return ret;
 }
