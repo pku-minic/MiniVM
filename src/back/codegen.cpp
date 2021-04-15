@@ -24,17 +24,12 @@ void CodeGenerator::CollectLabelInfo() {
         // check if is the first instruction (Jmp kVMEntry)
         if (!i) {
           // treat 'kVMEntry' as the entry function
-          entry_label_ = inst.opr;
+          entry_pc_ = inst.opr;
         }
         else {
           // in-block label
           labels_.insert(inst.opr);
         }
-        break;
-      }
-      case InstOp::Call: {
-        // function label
-        func_labels_.insert(inst.opr);
         break;
       }
       // ignore all other instructions
@@ -50,10 +45,10 @@ void CodeGenerator::BuildFunctions() {
   assert(static_cast<InstOp>(cont_.insts()->op) == InstOp::Jmp);
   for (VMAddr i = 1; i < cont_.inst_count(); ++i) {
     // check if is boundary of a function
-    if (i == entry_label_) {
+    if (i == entry_pc_) {
       cur_func = &entry_func_;
     }
-    else if (func_labels_.count(i)) {
+    else if (cont_.func_pcs().count(i)) {
       cur_func = &funcs_.emplace_back(i, FuncBody()).second;
     }
     // push instruction to the current function
@@ -81,7 +76,6 @@ void CodeGenerator::Generate() {
   // reset internal state
   has_error_ = false;
   labels_.clear();
-  func_labels_.clear();
   funcs_.clear();
   entry_func_.clear();
   Reset();
@@ -92,5 +86,5 @@ void CodeGenerator::Generate() {
   for (const auto &[pc, func] : funcs_) {
     GenerateOnFunc(pc, func);
   }
-  GenerateOnEntry(entry_label_, entry_func_);
+  GenerateOnEntry(entry_pc_, entry_func_);
 }
