@@ -137,7 +137,7 @@ static void f_getarray() {
   vmopr_t len;
   scanf("%" SCNd32, &len);
   for (int i = 0; i < len; ++i) {
-    scanf("%" SCNd32, (vmopr_t *)(mem_pool + arr + i));
+    scanf("%" SCNd32, (vmopr_t *)(mem_pool + arr + i * 4));
   }
   RETURN(len);
 }
