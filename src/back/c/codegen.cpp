@@ -293,7 +293,7 @@ void CCodeGen::GenerateOnEntry(VMAddr pc, const FuncBody &func) {
         auto sym = GetSymbol(inst.opr, pc);
         if (!sym) return;
         // emit C code
-        global_ << "vmopr_t " << *sym << ";\n";
+        global_ << "static vmopr_t " << *sym << ";\n";
         break;
       }
       // global arrays
@@ -302,7 +302,7 @@ void CCodeGen::GenerateOnEntry(VMAddr pc, const FuncBody &func) {
         auto sym = GetSymbol(inst.opr, pc);
         if (!sym) return;
         // emit C code
-        global_ << "vmaddr_t " << *sym << ";\n";
+        global_ << "static vmaddr_t " << *sym << ";\n";
         body << kIndent << *sym << " = pool_sp;\n";
         body << kIndent << "pool_sp += " << kStackPop << ";\n";
         break;
