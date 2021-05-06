@@ -4,6 +4,10 @@ All notable changes to the MiniVM will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+* Supported `NO_DEBUGGER` mode to disable the built-in debugger (MiniDbg).
+
 ### Fixed
 
 * Made GCC/G++ happy.
