@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(MiniVM VERSION "0.1.1")
+project(MiniVM VERSION "0.1.2")
 
 # set CMake module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
@@ -38,9 +38,17 @@ add_compile_definitions(APP_VERSION_PATCH=${PROJECT_VERSION_PATCH})
 
 # definitions about build option
 # legacy mode: don't complain about symbol redefinition
-option(MINIVM_LEGACY_MODE "enable legacy mode" OFF)
-if(MINIVM_LEGACY_MODE)
+option(LEGACY_MODE "enable legacy mode" OFF)
+if(LEGACY_MODE)
+  message("Legacy mode has been enabled.")
   add_compile_definitions(VM_LEGACY_MODE)
+endif()
+
+# no debugger: disable the built-in debugger of MiniVM
+option(NO_DEBUGGER "disable the built-in debugger" OFF)
+if(NO_DEBUGGER)
+  message("The built-in debugger (MiniDbg) has been disabled.")
+  add_compile_definitions(NO_DEBUGGER)
 endif()
 
 # find Flex/Bison
@@ -48,7 +56,9 @@ find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
 # find Readline
-find_package(Readline)
+if(NOT NO_DEBUGGER)
+  find_package(Readline)
+endif()
 
 # generate lexer/parser of Eeyore
 flex_target(EeyoreLexer src/front/eeyore.l
@@ -72,10 +82,16 @@ add_flex_bison_dependency(TiggerLexer TiggerParser)
 include_directories(src)
 include_directories(3rdparty/xstl)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${Readline_INCLUDE_DIR})
+if(NOT NO_DEBUGGER)
+  include_directories(${Readline_INCLUDE_DIR})
+endif()
 
 # all of C++ source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE DEBUGGER_SRCS "src/debugger/*.cpp")
+if (NO_DEBUGGER)
+  list(REMOVE_ITEM SOURCES ${DEBUGGER_SRCS})
+endif()
 set(SOURCES ${SOURCES} ${FLEX_EeyoreLexer_OUTPUTS}
     ${BISON_EeyoreParser_OUTPUT_SOURCE})
 set(SOURCES ${SOURCES} ${FLEX_TiggerLexer_OUTPUTS}
@@ -83,4 +99,6 @@ set(SOURCES ${SOURCES} ${FLEX_TiggerLexer_OUTPUTS}
 
 # executable
 add_executable(minivm ${SOURCES})
-target_link_libraries(minivm ${Readline_LIBRARY})
+if(NOT NO_DEBUGGER)
+  target_link_libraries(minivm ${Readline_LIBRARY})
+endif()
