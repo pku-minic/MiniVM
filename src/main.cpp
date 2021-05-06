@@ -14,7 +14,9 @@
 #include "front/wrapper.h"
 #include "vm/vm.h"
 #include "vmconf.h"
+#ifndef NO_DEBUGGER
 #include "debugger/minidbg/minidbg.h"
+#endif
 
 using namespace std;
 
@@ -26,7 +28,9 @@ xstl::ArgParser GetArgp() {
   argp.AddOption<bool>("help", "h", "show this message", false);
   argp.AddOption<bool>("version", "v", "show version info", false);
   argp.AddOption<bool>("tigger", "t", "run in Tigger mode", false);
+#ifndef NO_DEBUGGER
   argp.AddOption<bool>("debug", "d", "enable debugger", false);
+#endif
   argp.AddOption<string>("output", "o", "output file, default to stdout",
                          "");
   argp.AddOption<bool>("dump-gopher", "dg", "dump Gopher to output",
@@ -79,6 +83,9 @@ optional<VMOpr> RunVM(xstl::ArgParser &argp, string_view file, ostream &os,
   std::optional<VMOpr> ret;
   VM vm(symbols, cont);
   vm_init(vm);
+#ifdef NO_DEBUGGER
+  ret = vm.Run();
+#else
   if (argp.GetValue<bool>("debug")) {
     // debug mode
     MiniDebugger debugger(vm);
@@ -96,6 +103,7 @@ optional<VMOpr> RunVM(xstl::ArgParser &argp, string_view file, ostream &os,
   else {
     ret = vm.Run();
   }
+#endif
   return ret ? *ret : static_cast<VMOpr>(vm.error_code());
 }
 
