@@ -11,7 +11,7 @@ Before building MiniVM, please make sure you have installed the following depend
 * `cmake` 3.13 or later
 * C++ compiler supporting C++17
 * `flex` and `bison`
-* `readline`
+* `readline` (optional)
 
 Then you can build this repository by executing the following command lines:
 
@@ -22,6 +22,17 @@ $ mkdir build
 $ cd build
 $ cmake .. && make -j8
 ```
+
+### Building Without the Built-in Debugger
+
+You can turn the CMake option `NO_DEBUGGER` on to disable the built-in debugger (MiniDbg):
+
+```
+$ cmake -DNO_DEBUGGER=ON ..
+$ make -j8
+```
+
+With this option turned on, you can build MiniVM without `readline`.
 
 ## Changelog
 
