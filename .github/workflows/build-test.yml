@@ -22,6 +22,7 @@ jobs:
         config:
         - {cc: gcc-9, cxx: g++-9}
         - {cc: gcc-10, cxx: g++-10}
+        - {cc: clang, cxx: clang++}
 
     steps:
     - name: Checkout MiniVM
@@ -34,7 +35,7 @@ jobs:
       with:
         repository: pku-minic/MiniVM-test
         path: test
-        submodules: false
+        submodules: true
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{runner.workspace}}/build
