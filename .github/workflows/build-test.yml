@@ -15,6 +15,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        no-debugger: ['OFF', 'ON']
+        config:
+        - {cc: gcc-9, cxx: g++-9}
+        - {cc: gcc-10, cxx: g++-10}
 
     steps:
     - name: Checkout MiniVM
@@ -35,7 +42,10 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DMINIVM_LEGACY_MODE=ON
+      env:
+        CC: ${{matrix.config.cc}}
+        CXX: ${{matrix.config.cxx}}
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLEGACY_MODE=ON -DNO_DEBUGGER=${{matrix.no-debugger}}
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
