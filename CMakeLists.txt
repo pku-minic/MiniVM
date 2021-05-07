@@ -19,13 +19,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(MSVC)
   add_compile_options(/W3 /WX)
 else()
-  add_compile_options(-Wall -Werror)
-endif()
-
-# disable warnings caused by old version of Flex
-if(MSVC)
-  # TODO
-else()
+  # disable warnings caused by old version of Flex
   add_compile_options(-Wall -Werror -Wno-register)
 endif()
 
