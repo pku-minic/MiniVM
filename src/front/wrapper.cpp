@@ -1,9 +1,23 @@
 #include "front/wrapper.h"
 
+#include <iostream>
 #include <string>
 #include <cstdio>
 
 #include "front/strpool.h"
+#include "xstl/style.h"
+
+namespace {
+
+// print file error to stderr
+bool PrintFileError() {
+  using namespace xstl;
+  std::cerr << style("Br") << "file error: ";
+  std::perror("");
+  return false;
+}
+
+}  // namespace
 
 // defined in Flex/Bison generated files
 extern std::FILE *eeyore_in;
@@ -12,19 +26,23 @@ extern std::FILE *tigger_in;
 int tigger_parse(void *cont);
 
 bool ParseEeyore(std::string_view file, VMInstContainer &cont) {
-  eeyore_in = fopen(std::string(file).c_str(), "r");
+  if (!(eeyore_in = std::fopen(std::string(file).c_str(), "r"))) {
+    return PrintFileError();
+  }
   auto ret = eeyore_parse(&cont);
   cont.SealContainer();
-  fclose(eeyore_in);
+  std::fclose(eeyore_in);
   FreeAllStrs();
   return !ret;
 }
 
 bool ParseTigger(std::string_view file, VMInstContainer &cont) {
-  tigger_in = fopen(std::string(file).c_str(), "r");
+  if (!(tigger_in = std::fopen(std::string(file).c_str(), "r"))) {
+    return PrintFileError();
+  }
   auto ret = tigger_parse(&cont);
   cont.SealContainer();
-  fclose(tigger_in);
+  std::fclose(tigger_in);
   FreeAllStrs();
   return !ret;
 }
