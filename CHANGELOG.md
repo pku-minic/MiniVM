@@ -2,6 +2,12 @@
 
 All notable changes to the MiniVM will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+* Problem about parsing non-existent files.
+
 ## 0.1.2 - 2021-05-06
 
 ### Added
