@@ -217,6 +217,7 @@ Expression
   | CALL FUNCTION {
     CONT().LogLineNum(@$.first_line);
     CONT().PushCall($2);
+    CONT().PushOp(InstOp::Clear);
   }
   | SYMBOL '=' CALL FUNCTION {
     CONT().LogLineNum(@$.first_line);
