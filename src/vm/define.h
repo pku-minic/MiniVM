@@ -24,7 +24,9 @@
   /* comparisons */                                     \
   e(Eq) e(Ne) e(Gt) e(Lt) e(Ge) e(Le)                   \
   /* arithmetic operations */                           \
-  e(Neg) e(Add) e(Sub) e(Mul) e(Div) e(Mod)
+  e(Neg) e(Add) e(Sub) e(Mul) e(Div) e(Mod)             \
+  /* operand stack operations */                        \
+  e(Clear)
 // expand macro to comma-separated list
 #define VM_EXPAND_LIST(i)         i,
 // expand macro to comma-separated string array
