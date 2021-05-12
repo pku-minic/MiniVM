@@ -51,6 +51,7 @@ MiniVM supports the following instructions:
 * **Logical operations**: LNot, LAnd, LOr.
 * **Comparisons**: Eq, Ne, Gt, Lt, Ge, Le.
 * **Arithmetic operations**: Neg, Add, Sub, Mul, Div, Mod.
+* **Operand stack operations**: Clear.
 
 Details as follows:
 
@@ -93,6 +94,7 @@ Details as follows:
 | Mul     | N/A       | lhs, rhs          | perform multiplication                      |
 | Div     | N/A       | lhs, rhs          | perform division                            |
 | Mod     | N/A       | lhs, rhs          | Perform modulo operation                    |
+| Clear   | N/A       | N/A               | Clear the operand stack                     |
 
 ## Calling Conventions
 
