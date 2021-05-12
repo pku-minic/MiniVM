@@ -457,5 +457,11 @@ std::optional<VMOpr> VM::Run() {
     VM_NEXT(1);
   }
 
+  // clear operand stack
+  VM_LABEL(Clear) {
+    while (!oprs_.empty()) oprs_.pop();
+    VM_NEXT(1);
+  }
+
 #undef VM_NEXT
 }
