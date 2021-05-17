@@ -710,7 +710,10 @@ bool MiniDebugger::ExamineMem(std::istream &is) {
   }
   // get expression
   auto val = ReadExpression(is, false);
-  if (!val) return false;
+  if (!val) {
+    LogError("invalid expression");
+    return false;
+  }
   // print memory units
   auto addr = *val;
   while (n--) {
