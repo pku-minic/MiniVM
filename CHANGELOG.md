@@ -2,6 +2,12 @@
 
 All notable changes to the MiniVM will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+* Problem about printing error message for the `x` command in MiniDbg.
+
 ## 0.1.3 - 2021-05-12
 
 ### Fixed
