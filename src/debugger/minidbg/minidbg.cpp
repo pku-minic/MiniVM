@@ -729,13 +729,13 @@ bool MiniDebugger::ExamineMem(std::istream &is) {
     addr += 4;
     // print contents
     std::cout << ": " << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*ptr++) << ' ';
+              << (static_cast<int>(*ptr++) & 0xff) << ' ';
     std::cout << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*ptr++) << ' ';
+              << (static_cast<int>(*ptr++) & 0xff) << ' ';
     std::cout << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*ptr++) << ' ';
+              << (static_cast<int>(*ptr++) & 0xff) << ' ';
     std::cout << std::setw(2) << std::setfill('0')
-              << static_cast<int>(*ptr++);
+              << (static_cast<int>(*ptr++) & 0xff);
     std::cout << std::dec << std::endl;
   }
   return false;
