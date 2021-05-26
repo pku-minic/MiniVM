@@ -11,7 +11,8 @@
 // all memory will be allocated contiguously in one place
 class DenseMemoryPool : public MemoryPoolInterface {
  public:
-  DenseMemoryPool() {}
+  DenseMemoryPool() : mems_(nullptr), mem_size_(0) {}
+  ~DenseMemoryPool() { FreeMems(); }
 
   MemId Allocate(std::uint32_t size) override;
   void *GetAddress(MemId id) override;
@@ -19,8 +20,13 @@ class DenseMemoryPool : public MemoryPoolInterface {
   void RestoreState() override;
 
  private:
+  // free all allocated memories
+  void FreeMems();
+
   // all allocated memories
-  std::vector<std::uint8_t> mems_;
+  std::uint8_t *mems_;
+  // size of allocated memories
+  std::uint32_t mem_size_;
   // stack of saved states
   std::stack<std::uint32_t> states_;
 };
