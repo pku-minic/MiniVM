@@ -1,11 +1,22 @@
 #include "mem/sparse.h"
 
 #include <cassert>
+#include <type_traits>
+
+namespace {
+
+// make a unique pointer of uninitialized array type
+template <typename T>
+std::unique_ptr<T> MakeUninit(std::uint32_t size) {
+  return std::unique_ptr<T>(new std::remove_extent_t<T>[size]);
+}
+
+}  // namespace
 
 MemId SparseMemoryPool::Allocate(std::uint32_t size) {
   // allocate memory
   auto id = mem_size_;
-  auto mem = std::make_unique<std::uint8_t[]>(size);
+  auto mem = MakeUninit<std::uint8_t[]>(size);
   auto ret = mems_.insert({id, std::move(mem)}).second;
   static_cast<void>(ret);
   assert(ret);
