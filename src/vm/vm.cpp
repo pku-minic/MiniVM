@@ -64,6 +64,10 @@ void VM::LogError(std::size_t code) {
       std::cerr << "error occurred during external function call";
       break;
     }
+    case kVMErrorInvalidPCAddr: {
+      std::cerr << "invalid PC address (function without 'return'?)";
+      break;
+    }
     default: assert(false);
   }
   std::cerr << std::endl;
@@ -352,6 +356,12 @@ std::optional<VMOpr> VM::Run() {
       }
     }
     VM_NEXT(0);
+  }
+
+  // error
+  VM_LABEL(Error) {
+    LogError(inst->opr);
+    return {};
   }
 
   // logical negation
