@@ -5,7 +5,7 @@
 #include <cstdint>
 
 // all supported VM instructions
-// for more details, see src/vm/README.md
+// for more details, see `src/vm/README.md`
 #define VM_INSTS(e)                                     \
   /* memory allocation */                               \
   e(Var) e(Arr)                                         \
@@ -18,7 +18,7 @@
      or symbol name (external function) */              \
   e(Call) e(CallExt) e(Ret)                             \
   /* debugging */                                       \
-  e(Break)                                              \
+  e(Break) e(Error)                                     \
   /* logical operations */                              \
   e(LNot) e(LAnd) e(LOr)                                \
   /* comparisons */                                     \
@@ -92,6 +92,8 @@ constexpr std::size_t kVMErrorInvalidRegNum = 154;
 constexpr std::size_t kVMErrorInvalidExtFunc = 155;
 // external function error
 constexpr std::size_t kVMErrorExtFuncError = 156;
+// invalid PC address
+constexpr std::size_t kVMErrorInvalidPCAddr = 157;
 // VM irrelevant error
 constexpr std::size_t kVMErrorVMIrrelevant = 255;
 
