@@ -48,6 +48,7 @@ class VMInstContainer {
   void PushBnz(std::string_view label);
   void PushJump(std::string_view label);
   void PushCall(std::string_view label);
+  void PushError(std::size_t code);
   void PushOp(InstOp op);
 
   // instruction metadata logger, for frontends

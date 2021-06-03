@@ -211,6 +211,10 @@ void VMInstContainer::PushCall(std::string_view label) {
   PushInst(InstOp::Call);
 }
 
+void VMInstContainer::PushError(std::size_t code) {
+  PushInst(InstOp::Error, code);
+}
+
 void VMInstContainer::PushOp(InstOp op) {
   PushInst(op);
 }
@@ -276,6 +280,10 @@ void VMInstContainer::EnterFunc(std::uint32_t param_count,
 }
 
 void VMInstContainer::ExitFunc() {
+  // raise error in case user forgets to put
+  // a return statement before exiting the function
+  PushError(kVMErrorInvalidPCAddr);
+  // update environment
   local_env_.clear();
   cur_env_ = &global_env_;
 }
