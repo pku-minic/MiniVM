@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(MiniVM VERSION "0.1.3")
+project(MiniVM VERSION "0.1.4")
 
 # set CMake module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
