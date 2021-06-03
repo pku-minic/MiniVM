@@ -376,7 +376,7 @@ bool VMInstContainer::Dump(std::ostream &os, VMAddr pc) const {
     }
     case InstOp::LdReg: case InstOp::StReg: case InstOp::StRegP:
     case InstOp::Imm: case InstOp::ImmHi: case InstOp::Bnz:
-    case InstOp::Jmp: case InstOp::Call: {
+    case InstOp::Jmp: case InstOp::Call: case InstOp::Error: {
       // dump 'opr' field directly
       os << inst.opr;
       break;
