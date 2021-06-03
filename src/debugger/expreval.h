@@ -43,7 +43,7 @@ class ExprEvaluatorBase {
     // call lexer & parser
     NextToken();
     auto val = Parse();
-    if (!val) return {};
+    if (!val) return std::nullopt;
     // record expression
     if (record) {
       // trim expression string
@@ -60,7 +60,7 @@ class ExprEvaluatorBase {
   // evaluate expression by the specific record id
   std::optional<ValType> Eval(std::uint32_t id) {
     auto it = records_.find(id);
-    if (it == records_.end()) return {};
+    if (it == records_.end()) return std::nullopt;
     return Eval(it->second, false);
   }
 
@@ -119,7 +119,7 @@ class ExprEvaluatorBase {
   // print parser error message to stderr
   static std::optional<ValType> LogParserError(std::string_view msg) {
     std::cout << "ERROR (expr.parser): " << msg << std::endl;
-    return {};
+    return std::nullopt;
   }
 
   // check if specific character can appear in operators
@@ -291,7 +291,7 @@ class ExprEvaluatorBase {
 
   // (parser) parse the current expression
   std::optional<ValType> Parse() {
-    if (cur_token_ == Token::End) return {};
+    if (cur_token_ == Token::End) return std::nullopt;
     return ParseBinary();
   }
 
@@ -301,7 +301,7 @@ class ExprEvaluatorBase {
     std::stack<Operator> ops;
     // get the first value
     auto val = ParseUnary();
-    if (!val) return {};
+    if (!val) return std::nullopt;
     oprs.push(*val);
     // calculate using stack
     while (cur_token_ == Token::Operator) {
@@ -347,7 +347,7 @@ class ExprEvaluatorBase {
       NextToken();
       // get operand
       auto opr = ParseUnary();
-      if (!opr) return {};
+      if (!opr) return std::nullopt;
       // calculate
       switch (op) {
         case Operator::Add: return *opr;
@@ -395,7 +395,7 @@ class ExprEvaluatorBase {
         NextToken();
         // parse inner binary expression
         auto val = ParseBinary();
-        if (!val) return {};
+        if (!val) return std::nullopt;
         // check ')'
         if (cur_token_ != Token::Char || char_val_ != ')') {
           return LogParserError("expected ')'");
