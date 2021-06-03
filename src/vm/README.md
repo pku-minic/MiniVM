@@ -79,6 +79,7 @@ Details as follows:
 | CallExt | `sym`     | N/A               | call external function `sym`                |
 | Ret     | N/A       | N/A               | return from a function call                 |
 | Break   | N/A       | N/A               | breakpoint, inserted by debugger            |
+| Error   | `code`    | N/A               | raise an error with error code `code`       |
 | LNot    | N/A       | opr               | perform logical negation                    |
 | LAnd    | N/A       | lhs, rhs          | perform logical AND operation               |
 | LOr     | N/A       | lhs, rhs          | perform logical OR operation                |
@@ -171,6 +172,7 @@ The error codes and their meanings are shown in the table below:
 | 154         | Invalid register number.        |
 | 155         | Invalid external function.      |
 | 156         | External function error.        |
+| 157         | Invalid PC address.             |
 | 255         | VM irrelevant error.            |
 
 The error codes are designed mainly to facilitate the implementation of certain automated test scripts.
