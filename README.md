@@ -34,6 +34,10 @@ $ make -j8
 
 With this option turned on, you can build MiniVM without `readline`.
 
+## How does MiniVM Work?
+
+See [the documentation](src/vm/README.md) about the VM part of MiniVM.
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md)
