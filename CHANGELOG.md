@@ -4,6 +4,10 @@ All notable changes to the MiniVM will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+* Detection about functions without `return` statements.
+
 ### Fixed
 
 * Problem about printing error message for the `x` command in MiniDbg.
@@ -31,7 +35,7 @@ All notable changes to the MiniVM will be documented in this file.
 
 * Problem about the line number in front end error message.
 
-## 0.1.0 - 2020-04-03
+## 0.1.0 - 2021-04-03
 
 ### Added
 
