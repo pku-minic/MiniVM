@@ -189,40 +189,59 @@ inline VMOpr &GetParam(VM &vm, std::size_t param_id) {
   return vm.regs(static_cast<RegId>(TokenReg::A0) + param_id);
 }
 
+void ResetCallerSaveRegs(VM &vm) {
+  for (RegId i = static_cast<RegId>(TokenReg::T0);
+       i < static_cast<RegId>(TokenReg::A7); ++i) {
+    vm.regs(i) = 0xdeadc0de;
+  }
+}
+
 bool GetInt(VM &vm) {
+  ResetCallerSaveRegs(vm);
   std::cin >> GetRetVal(vm);
   return true;
 }
 
 bool GetCh(VM &vm) {
+  ResetCallerSaveRegs(vm);
   GetRetVal(vm) = std::cin.get();
   return true;
 }
 
 bool GetArray(VM &vm) {
-  return impl::GetArray(vm, GetRetVal(vm), GetParam(vm, 0));
+  auto arr = GetParam(vm, 0);
+  ResetCallerSaveRegs(vm);
+  return impl::GetArray(vm, GetRetVal(vm), arr);
 }
 
 bool PutInt(VM &vm) {
   std::cout << GetParam(vm, 0);
+  ResetCallerSaveRegs(vm);
   return true;
 }
 
 bool PutCh(VM &vm) {
   std::cout.put(GetParam(vm, 0));
+  ResetCallerSaveRegs(vm);
   return true;
 }
 
 bool PutArray(VM &vm) {
-  return impl::PutArray(vm, GetParam(vm, 0), GetParam(vm, 1));
+  auto len = GetParam(vm, 0), arr = GetParam(vm, 1);
+  ResetCallerSaveRegs(vm);
+  return impl::PutArray(vm, len, arr);
 }
 
 bool StartTime(VM &vm) {
-  return impl::StartTime(GetParam(vm, 0));
+  auto line_num = GetParam(vm, 0);
+  ResetCallerSaveRegs(vm);
+  return impl::StartTime(line_num);
 }
 
 bool StopTime(VM &vm) {
-  return impl::StopTime(GetParam(vm, 0));
+  auto line_num = GetParam(vm, 0);
+  ResetCallerSaveRegs(vm);
+  return impl::StopTime(line_num);
 }
 
 }  // namespace tigger
