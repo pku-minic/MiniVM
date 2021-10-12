@@ -46,7 +46,7 @@ jobs:
       env:
         CC: ${{matrix.config.cc}}
         CXX: ${{matrix.config.cxx}}
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DLEGACY_MODE=ON -DNO_DEBUGGER=${{matrix.no-debugger}}
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DNO_DEBUGGER=${{matrix.no-debugger}}
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
