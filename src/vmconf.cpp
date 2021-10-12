@@ -266,4 +266,5 @@ void InitTiggerVM(VM &vm) {
   // add library functions
   ADD_LIBS(vm);
   vm.Reset();
+  vm.regs(static_cast<RegId>(TokenReg::X0)) = 0;
 }
