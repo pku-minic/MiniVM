@@ -30,14 +30,6 @@ add_compile_definitions(APP_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
 add_compile_definitions(APP_VERSION_MINOR=${PROJECT_VERSION_MINOR})
 add_compile_definitions(APP_VERSION_PATCH=${PROJECT_VERSION_PATCH})
 
-# definitions about build option
-# legacy mode: don't complain about symbol redefinition
-option(LEGACY_MODE "enable legacy mode" OFF)
-if(LEGACY_MODE)
-  message("Legacy mode has been enabled.")
-  add_compile_definitions(VM_LEGACY_MODE)
-endif()
-
 # no debugger: disable the built-in debugger of MiniVM
 option(NO_DEBUGGER "disable the built-in debugger" OFF)
 if(NO_DEBUGGER)
