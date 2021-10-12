@@ -159,7 +159,7 @@ void VM::Reset() {
   // save current state of memory pool
   mem_pool_->SaveState();
   // clear all static registers
-  regs_.assign(regs_.size(), 0);
+  regs_.assign(regs_.size(), 0xdeadc0de);
   // reset error code
   error_code_ = 0;
 }
