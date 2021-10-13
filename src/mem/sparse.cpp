@@ -1,7 +1,7 @@
 #include "mem/sparse.h"
 
-#include <cassert>
 #include <type_traits>
+#include <cassert>
 
 namespace {
 
@@ -13,10 +13,11 @@ std::unique_ptr<T> MakeUninit(std::uint32_t size) {
 
 }  // namespace
 
-MemId SparseMemoryPool::Allocate(std::uint32_t size) {
+MemId SparseMemoryPool::Allocate(std::uint32_t size, bool init) {
   // allocate memory
   auto id = mem_size_;
-  auto mem = MakeUninit<std::uint8_t[]>(size);
+  auto mem = init ? std::make_unique<std::uint8_t[]>(size)
+                  : MakeUninit<std::uint8_t[]>(size);
   auto ret = mems_.insert({id, std::move(mem)}).second;
   static_cast<void>(ret);
   assert(ret);
