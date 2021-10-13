@@ -11,7 +11,7 @@ using namespace minivm::vm;
 // embbedded C code snippets
 static const char *kCCodeTiggerMode = "#define TIGGER_MODE\n";
 XSTL_EMBED_STR(kCCodeVM, "back/c/embed/vm.c");
-#ifdef LET_CMAKE_KNOW_THERE_IS_A_EMBEDDED_FILE
+#ifdef LET_CMAKE_KNOW_THERE_IS_AN_EMBEDDED_FILE
 #include "back/c/embed/vm.c"
 #endif
 
@@ -39,6 +39,8 @@ constexpr const char *kStackPoke = "PokeValue";
 constexpr const char *kStackPop = "PopValue()";
 // stack peek operation
 constexpr const char *kStackPeek = "PeekValue()";
+// stack clear operation
+constexpr const char *kStackClear = "Clear()";
 // stack size
 constexpr const char *kStackSize = "StackSize()";
 // breakpoint
@@ -169,10 +171,6 @@ bool CCodeGen::GenerateInst(std::ostringstream &oss, VMAddr pc,
           << ((inst.opr & kMaskHi) << kVMInstImmLen) << ");\n";
       break;
     }
-    case InstOp::Pop: {
-      oss << kIndent << kStackPop << ";\n";
-      break;
-    }
     case InstOp::Bnz: {
       oss << kIndent << "if (" << kStackPop << ") goto " << kPrefixLabel
           << inst.opr << ";\n";
@@ -200,6 +198,20 @@ bool CCodeGen::GenerateInst(std::ostringstream &oss, VMAddr pc,
     }
     case InstOp::Break: {
       oss << kIndent << kBreakpoint << ";\n";
+      break;
+    }
+    case InstOp::Error: {
+      oss << kIndent << "fprintf(stderr, \"VM error, code " << inst.opr
+          << "\");\n";
+      oss << kIndent << "exit(" << inst.opr << ");\n";
+      break;
+    }
+    case InstOp::Pop: {
+      oss << kIndent << kStackPop << ";\n";
+      break;
+    }
+    case InstOp::Clear: {
+      oss << kIndent << kStackClear << ";\n";
       break;
     }
     default: {
