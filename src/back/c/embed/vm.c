@@ -91,6 +91,7 @@ INLINE void PushValue(vmopr_t val) { opr_stack[stack_sp++] = val; }
 INLINE void PokeValue(vmopr_t val) { opr_stack[stack_sp - 1] = val; }
 INLINE vmopr_t PopValue() { return opr_stack[--stack_sp]; }
 INLINE vmopr_t PeekValue() { return opr_stack[stack_sp - 1]; }
+INLINE void Clear() { stack_sp = 0; }
 INLINE size_t StackSize() { return stack_sp; }
 INLINE void Break() { raise(SIGTRAP); }
 
