@@ -2,6 +2,12 @@
 
 All notable changes to the MiniVM will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+* Bug about reading/writing `x0` register in Tigger mode.
+
 ## 0.1.4 - 2021-10-13
 
 ### Added
