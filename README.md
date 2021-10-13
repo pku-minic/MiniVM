@@ -2,7 +2,7 @@
 
 [![Build and Test](https://github.com/pku-minic/MiniVM/workflows/Build%20and%20Test/badge.svg)](https://github.com/pku-minic/MiniVM)
 
-MiniVM is a virtual machine for interpreting Eeyore/Tigger IR, which is designed for PKU compiler course.
+MiniVM is a virtual machine for executing Eeyore/Tigger IR, which is designed for PKU compiler course.
 
 ## Building from Source
 
@@ -11,7 +11,7 @@ Before building MiniVM, please make sure you have installed the following depend
 * `cmake` 3.13 or later
 * C++ compiler supporting C++17
 * `flex` and `bison`
-* `readline` (optional)
+* `readline` (optional, see [Building Without the Built-in Debugger](#Building%20Without%20the%20Built-in%20Debugger))
 
 Then you can build this repository by executing the following command lines:
 
