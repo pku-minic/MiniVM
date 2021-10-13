@@ -2,11 +2,16 @@
 
 All notable changes to the MiniVM will be documented in this file.
 
-## Unreleased
+## 0.1.4 - 2021-10-13
 
 ### Added
 
 * Detection about functions without `return` statements.
+
+### Changed
+
+* MiniVM will not perform initialization in the local allocation, but will still initialize all global memory.
+* Tigger library functions will disrupt all caller-saved registers.
 
 ### Fixed
 
