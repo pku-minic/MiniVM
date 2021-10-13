@@ -178,7 +178,9 @@ std::optional<VMOpr> VM::Run() {
 
   // allocate memory for variable
   VM_LABEL(Var) {
-    auto succ = envs_.top().first->insert({inst->opr, 0}).second;
+    // initialize variable if is in global environment
+    auto init = envs_.size() == 1 ? 0 : 0xdeadc0de;
+    auto succ = envs_.top().first->insert({inst->opr, init}).second;
     VM_ASSERT(succ, kVMErrorSymbolRedef);
     static_cast<void>(succ);
     VM_NEXT(1);
@@ -189,8 +191,12 @@ std::optional<VMOpr> VM::Run() {
     // add a new entry to environment
     auto ret = envs_.top().first->insert({inst->opr, 0});
     VM_ASSERT(ret.second, kVMErrorSymbolRedef);
-    // allocate a new memory
-    if (ret.second) ret.first->second = mem_pool_->Allocate(PopValue());
+    // allocate a new memory if success
+    if (ret.second) {
+      // allocate initialized memory if is in global environment
+      ret.first->second =
+          mem_pool_->Allocate(PopValue(), envs_.size() == 1);
+    }
     VM_NEXT(1);
   }
 
