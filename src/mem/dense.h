@@ -14,7 +14,7 @@ class DenseMemoryPool : public MemoryPoolInterface {
   DenseMemoryPool() : mems_(nullptr), mem_size_(0) {}
   ~DenseMemoryPool() { FreeMems(); }
 
-  MemId Allocate(std::uint32_t size) override;
+  MemId Allocate(std::uint32_t size, bool init) override;
   void *GetAddress(MemId id) override;
   void SaveState() override;
   void RestoreState() override;
