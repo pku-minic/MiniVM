@@ -292,12 +292,6 @@ std::optional<VMOpr> VM::Run() {
     VM_NEXT(1);
   }
 
-  // discard the top value on the stack
-  VM_LABEL(Pop) {
-    PopValue();
-    VM_NEXT(1);
-  }
-
   // branch if not zero
   VM_LABEL(Bnz) {
     if (PopValue()) {
@@ -474,6 +468,12 @@ std::optional<VMOpr> VM::Run() {
   VM_LABEL(Mod) {
     auto rhs = PopValue();
     GetOpr() %= rhs;
+    VM_NEXT(1);
+  }
+
+  // discard the top value on the stack
+  VM_LABEL(Pop) {
+    PopValue();
     VM_NEXT(1);
   }
 

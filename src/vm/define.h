@@ -11,7 +11,7 @@
   e(Var) e(Arr)                                         \
   /* load & store */                                    \
   e(Ld) e(LdVar) e(LdReg) e(St) e(StVar) e(StVarP)      \
-  e(StReg) e(StRegP) e(Imm) e(ImmHi) e(Pop)             \
+  e(StReg) e(StRegP) e(Imm) e(ImmHi)                    \
   /* control transfer (with absolute target address) */ \
   e(Bnz) e(Jmp)                                         \
   /* function call, with absolute target address        \
@@ -26,7 +26,7 @@
   /* arithmetic operations */                           \
   e(Neg) e(Add) e(Sub) e(Mul) e(Div) e(Mod)             \
   /* operand stack operations */                        \
-  e(Clear)
+  e(Pop) e(Clear)
 // expand macro to comma-separated list
 #define VM_EXPAND_LIST(i)         i,
 // expand macro to comma-separated string array
