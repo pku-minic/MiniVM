@@ -71,8 +71,8 @@ Details as follows:
 | StVarP  | `sym`     | val (preserved)   | preserve & store val to `sym`               |
 | StReg   | `reg`     | val               | pop & store val to `reg`                    |
 | StRegP  | `reg`     | val (preserved)   | preserve & store val to `reg`               |
-| Imm     | `imm`     | N/A               | load 24-bit `imm` to stack                  |
-| ImmHi   | `imm`     | val (preserved)   | load `imm`&255 to upper 8-bit of val        |
+| Imm     | `imm`     | N/A               | load 24-bit `imm` to stack (sign extended)  |
+| ImmHi   | `imm`     | val (preserved)   | load `imm & 255` to upper 8-bit of val      |
 | Bnz     | `pc`      | cond              | jump to `pc` if cond is not zero            |
 | Jmp     | `pc`      | N/A               | jump to `pc`                                |
 | Call    | `pc`      | N/A               | call function at `pc`                       |
