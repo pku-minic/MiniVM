@@ -2,7 +2,11 @@
 
 All notable changes to the MiniVM will be documented in this file.
 
-## Unreleased
+## 0.2.0 - 2021-10-14
+
+### Added
+
+* C backend for converting Eeyore/Tigger programs into C programs.
 
 ### Fixed
 
