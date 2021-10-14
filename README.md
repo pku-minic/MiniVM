@@ -11,7 +11,7 @@ Before building MiniVM, please make sure you have installed the following depend
 * `cmake` 3.13 or later
 * C++ compiler supporting C++17
 * `flex` and `bison`
-* `readline` (optional, see [Building Without the Built-in Debugger](#Building%20Without%20the%20Built-in%20Debugger))
+* `readline` (optional, see [Building Without the Built-in Debugger](#building-without-the-built-in-debugger))
 
 Then you can build this repository by executing the following command lines:
 
