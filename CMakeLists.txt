@@ -77,8 +77,10 @@ file(GLOB_RECURSE EMBEDDED_FILES "src/back/c/embed/*.c")
 
 # all of C++ source files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
-file(GLOB_RECURSE DEBUGGER_SRCS "src/debugger/*.cpp")
 if (NO_DEBUGGER)
+  file(GLOB_RECURSE DEBUGGER_SRCS "src/debugger/*.cpp")
+  # do not remove 'srcreader.cpp' as it's used by the C backend
+  list(REMOVE_ITEM DEBUGGER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/src/debugger/minidbg/srcreader.cpp")
   list(REMOVE_ITEM SOURCES ${DEBUGGER_SRCS})
 endif()
 list(REMOVE_ITEM SOURCES ${EMBEDDED_FILES})
