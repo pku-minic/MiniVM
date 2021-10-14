@@ -84,7 +84,7 @@ bool CCodeGen::GenerateInst(std::ostringstream &oss, VMAddr pc,
     last_line_ = *line;
     auto src = src_reader_.ReadLine(*line);
     if (src) oss << kIndent << "// " << *src << '\n';
-    oss << "#line " << *line << " \"" << cont().src_file() << "\"\n";
+    // oss << "#line " << *line << " \"" << cont().src_file() << "\"\n";
   }
   // generate label
   if (IsLabel(pc)) oss << kPrefixLabel << pc << ":\n";
@@ -159,7 +159,11 @@ bool CCodeGen::GenerateInst(std::ostringstream &oss, VMAddr pc,
       break;
     }
     case InstOp::Imm: {
-      oss << kIndent << kStackPush << '(' << inst.opr << ");\n";
+      constexpr auto kSignBit = 1u << (kVMInstImmLen - 1);
+      constexpr auto kUpperOnes = (1u << (32 - kVMInstImmLen)) - 1;
+      auto val = inst.opr;
+      if (val & kSignBit) val |= kUpperOnes << kVMInstImmLen;
+      oss << kIndent << kStackPush << "((vmopr_t)" << val << ");\n";
       break;
     }
     case InstOp::ImmHi: {
@@ -167,7 +171,7 @@ bool CCodeGen::GenerateInst(std::ostringstream &oss, VMAddr pc,
       constexpr auto kMaskHi = (1u << (32 - kVMInstImmLen)) - 1;
       oss << kIndent << kStackPoke << '(' << kStackPeek << " & " << kMaskLo
           << ");\n";
-      oss << kIndent << kStackPoke << '(' << kStackPeek << " | "
+      oss << kIndent << kStackPoke << '(' << kStackPeek << " | (vmopr_t)"
           << ((inst.opr & kMaskHi) << kVMInstImmLen) << ");\n";
       break;
     }
