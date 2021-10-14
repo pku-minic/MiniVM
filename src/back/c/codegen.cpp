@@ -84,7 +84,7 @@ bool CCodeGen::GenerateInst(std::ostringstream &oss, VMAddr pc,
     last_line_ = *line;
     auto src = src_reader_.ReadLine(*line);
     if (src) oss << kIndent << "// " << *src << '\n';
-    // oss << "#line " << *line << " \"" << cont().src_file() << "\"\n";
+    oss << "#line " << *line << " \"" << cont().src_file() << "\"\n";
   }
   // generate label
   if (IsLabel(pc)) oss << kPrefixLabel << pc << ":\n";
