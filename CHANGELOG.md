@@ -2,6 +2,13 @@
 
 All notable changes to the MiniVM will be documented in this file.
 
+## 0.2.1 - 2021-12-03
+
+### Changed
+
+* MiniVM will disrupt all local allocated memories.
+* MiniVM will not zero initialize Tigger registers.
+
 ## 0.2.0 - 2021-10-14
 
 ### Added
