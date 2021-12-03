@@ -15,7 +15,7 @@ MemId DenseMemoryPool::Allocate(std::uint32_t size, bool init) {
   auto id = mem_size_;
   mem_size_ += size;
   mems_ = reinterpret_cast<std::uint8_t *>(std::realloc(mems_, mem_size_));
-  if (init) std::memset(mems_ + id, 0, size);
+  std::memset(mems_ + id, init ? 0 : 0x98, size);
   return id;
 }
 
