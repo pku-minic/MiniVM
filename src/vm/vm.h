@@ -52,7 +52,7 @@ class VM {
   // set count of static registers
   void set_static_reg_count(std::uint32_t count) {
     regs_.clear();
-    regs_.resize(count);
+    regs_.resize(count, 0xdeadc0de);
   }
   // set id of return value register
   void set_ret_reg_id(RegId ret_reg_id) { ret_reg_id_ = ret_reg_id; }
