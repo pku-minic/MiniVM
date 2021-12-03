@@ -12,7 +12,7 @@ namespace {
 template <typename T>
 std::unique_ptr<T> MakeUninit(std::uint32_t size) {
   auto ptr = std::unique_ptr<T>(new std::remove_extent_t<T>[size]);
-  std::memset(ptr.get(), 0x5b, size * sizeof(T));
+  std::memset(ptr.get(), 0x5b, size * sizeof(std::remove_extent_t<T>));
   return ptr;
 }
 
